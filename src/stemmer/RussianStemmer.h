@@ -5,12 +5,12 @@
 #ifndef ISEARCH_RUSSIANSTEMMER_H
 #define ISEARCH_RUSSIANSTEMMER_H
 
-#include "Stemmer.h"
+#include "IStemmer.h"
 
 namespace isearch {
-    class RussianStemmer: public Stemmer {
+    class RussianStemmer: public IStemmer {
     public:
-        std::wstring stem(const std::wstring& word);
+        std::wstring stem(const std::wstring& word) override;
     };
 
 }

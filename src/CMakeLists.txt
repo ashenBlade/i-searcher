@@ -9,6 +9,7 @@ project(
 SET(sources
         main.cpp
         stemmer/RussianStemmer.cpp
+        tokenizer/StreamTokenizer.cpp
 )
 
 add_executable(${PROJECT_NAME} main.cpp)

@@ -4,11 +4,24 @@
 #include <iostream>
 
 #include "stemmer/RussianStemmer.h"
+#include "tokenizer/StreamTokenizer.h"
+
+static void setupEnvironment();
 
 int main(int argc, char** argv) {
-    auto stemmer = isearch::RussianStemmer();
-    std::wstring word = L"важную";
-    auto normalized = stemmer.stem(word);
-    std::wcout << normalized << std::endl;
+    setupEnvironment();
+
+    auto tokenizer = isearch::StreamTokenizer(std::wcin);
+    std::wstring str {};
+    while (tokenizer.tryReadNextWord(str)) {
+        std::wcout << str << std::endl;
+        str = std::wstring();
+    }
     return 0;
+}
+
+void setupEnvironment() {
+
+    // Чтобы мог считывать как русские так и английские символы из консоли
+    setlocale(LC_ALL, "");
 }
