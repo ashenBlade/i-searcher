@@ -10,6 +10,7 @@ SET(sources
         main.cpp
         stemmer/RussianStemmer.cpp
         tokenizer/StreamTokenizer.cpp
+        tokenizer/FilterTokenizerDecorator.cpp
 )
 
 add_executable(${PROJECT_NAME} main.cpp)
