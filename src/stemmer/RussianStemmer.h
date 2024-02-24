@@ -10,7 +10,7 @@
 namespace isearch {
     class RussianStemmer: public IStemmer {
     public:
-        std::wstring stem(const std::wstring& word) override;
+        std::string stem(const std::string& word) override;
     };
 
 }

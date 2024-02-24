@@ -5,15 +5,15 @@
 #include "StreamTokenizer.h"
 #include <system_error>
 
-isearch::StreamTokenizer::StreamTokenizer(std::wistream &stream) noexcept: _stream(stream), _end(false) {  }
+isearch::StreamTokenizer::StreamTokenizer(std::istream &stream) noexcept: _stream(stream), _end(false) {  }
 
-static void skipWhiteSpaces(std::wistream &stream) {
-    while (stream && iswspace(stream.peek())) {
+static void skipWhiteSpaces(std::istream &stream) {
+    while (stream && isspace(stream.peek())) {
         (void) stream.get();
     }
 }
 
-bool isearch::StreamTokenizer::tryReadNextWord(std::wstring& word) {
+bool isearch::StreamTokenizer::tryReadNextWord(std::string& word) {
     if (_end) {
         return false;
     }
@@ -31,22 +31,22 @@ bool isearch::StreamTokenizer::tryReadNextWord(std::wstring& word) {
 
     // Самое длинное слово - 35 символов, но сделаем больше на всякий случай
     constexpr int maxBufferLength = 256;
-    wchar_t newWordBuffer[maxBufferLength];
+    char newWordBuffer[maxBufferLength];
 
     // Индекс для вставки нового слова
     constexpr int noDataIndex = -1;
     int index = noDataIndex;
 
-    while (_stream.good()) {
-        wchar_t read = 0;
-        _stream >> read;
-        if (_stream.fail() || iswspace(read))
+    char read = 0;
+    while (_stream.get(read)) {
+        if (_stream.fail() || isspace(read))
         {
             if (_stream.fail()) {
                 _end = true;
             }
             break;
         }
+
         newWordBuffer[++index] = read;
         if (index == maxBufferLength - 1) {
             break;

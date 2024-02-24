@@ -12,16 +12,16 @@ static void setupEnvironment();
 int main(int argc, char** argv) {
     setupEnvironment();
 
-    auto tokenizer = isearch::StreamTokenizer(std::wcin);
-    std::set<std::wstring> stopWords = {
-            L"мир",
-            L"привет",
+    auto tokenizer = isearch::StreamTokenizer(std::cin);
+    std::set<std::string> stopWords = {
+            u8"мир",
+            u8"привет",
     };
     auto wrapped = isearch::FilterTokenizerDecorator(stopWords, tokenizer);
-    std::wstring str {};
+    std::string str {};
     while (wrapped.tryReadNextWord(str)) {
-        std::wcout << str << std::endl;
-        str = std::wstring();
+        std::cout << str << std::endl;
+        str = std::string();
     }
     return 0;
 }

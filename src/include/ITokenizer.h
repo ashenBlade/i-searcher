@@ -14,7 +14,7 @@ namespace isearch {
         /// @param word - Прочитанное слово, если успешно
         /// @returns true - слово прочитано, false - достигнут конец и слов больше нет
         /// @remarks В @param word Будет записано значение прочитанного слова, если было, в противном случае, значение не определено.
-        virtual bool tryReadNextWord(std::wstring& word) = 0;
+        virtual bool tryReadNextWord(std::string& word) = 0;
 
         virtual ~ITokenizer() = default;
     };

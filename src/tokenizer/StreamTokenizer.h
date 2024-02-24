@@ -11,11 +11,11 @@
 namespace isearch {
     class StreamTokenizer: public ITokenizer {
     private:
-        std::wistream& _stream;
+        std::istream& _stream;
         bool _end;
     public:
-        explicit StreamTokenizer(std::wistream &stream) noexcept;
-        bool tryReadNextWord(std::wstring &word) override;
+        explicit StreamTokenizer(std::istream &stream) noexcept;
+        bool tryReadNextWord(std::string &word) override;
 
         StreamTokenizer() = delete;
         ~StreamTokenizer() override;

@@ -13,7 +13,7 @@ namespace isearch {
         /// @brief Привести переданное слово к каноническому виду (базовая форма)
         /// @param word - Слово, которое нужно привести к каноническому виду
         /// @returns Слово в каконическом виде
-        virtual std::wstring stem(const std::wstring& word) = 0;
+        virtual std::string stem(const std::string& word) = 0;
     };
 }
 
