@@ -323,8 +323,7 @@ std::string isearch::RussianStemmer::stem(const std::string &word) {
     auto pair = extract_middle_vowel_index(word);
     auto first_vowel_index = std::get<0>(pair);
     auto next_char_index = std::get<1>(pair);
-    // TODO: если последняя гласная, то
-    if (first_vowel_index == std::string::npos || first_vowel_index == word.length() - 1) {
+    if (first_vowel_index == std::string::npos) {
         // Гласных нет вообще или только последняя буква гласная - т.е. изменить нельзя
         return word;
     }

@@ -6,6 +6,7 @@
 #include "stemmer/RussianStemmer.h"
 #include "tokenizer/StreamTokenizer.h"
 #include "tokenizer/FilterTokenizerDecorator.h"
+#include "tokenizer/WordCleanerTokenizerDecorator.h"
 
 static void setupEnvironment();
 
@@ -13,11 +14,11 @@ int main(int argc, char** argv) {
     setupEnvironment();
 
     auto tokenizer = isearch::StreamTokenizer(std::cin);
-    std::set<std::string> stopWords = {
-            u8"мир",
-            u8"привет",
-    };
-    auto wrapped = isearch::FilterTokenizerDecorator(stopWords, tokenizer);
+//    std::set<std::string> stopWords = {
+//            u8"мир",
+//            u8"привет",
+//    };
+    auto wrapped = isearch::WordCleanerTokenizerDecorator(tokenizer);
     std::string str {};
     while (wrapped.tryReadNextWord(str)) {
         std::cout << str << std::endl;
