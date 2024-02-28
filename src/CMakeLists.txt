@@ -12,9 +12,11 @@ SET(sources
         tokenizer/StreamTokenizer.cpp
         tokenizer/FilterTokenizerDecorator.cpp
         tokenizer/WordCleanerTokenizerDecorator.cpp
+        common/Document.cpp
+        common/DocumentCollection.cpp
 )
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} ${sources})
 
 target_sources(${PROJECT_NAME} PRIVATE ${sources})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
