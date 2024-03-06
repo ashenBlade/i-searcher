@@ -5,9 +5,6 @@
 #include <map>
 
 #include "stemmer/RussianStemmer.h"
-#include "tokenizer/StreamTokenizer.h"
-#include "tokenizer/FilterTokenizerDecorator.h"
-#include "tokenizer/WordCleanerTokenizerDecorator.h"
 #include "DocumentCollection.h"
 
 static void setupEnvironment();
@@ -16,15 +13,15 @@ int main(int argc, char** argv) {
     setupEnvironment();
 
     auto collection = isearch::DocumentCollection(std::vector<isearch::Document>{
-        isearch::Document(std::map<std::string, int> {
+        isearch::Document("Привет", std::map<std::string, int> {
                 {"hello", 123},
                 {u8"мир", 11}
         }),
-        isearch::Document(std::map<std::string, int> {
+        isearch::Document("Алло", std::map<std::string, int> {
                 {u8"привет", 1},
                 {"аааааа", 11}
         }),
-        isearch::Document(std::map<std::string, int> {
+        isearch::Document("Нет", std::map<std::string, int> {
                 {u8"привет", 1},
                 {"аааааа", 11},
         })

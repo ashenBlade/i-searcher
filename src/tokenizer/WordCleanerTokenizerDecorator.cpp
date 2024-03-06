@@ -2,7 +2,7 @@
 // Created by ashblade on 24.02.24.
 //
 
-#include "WordCleanerTokenizerDecorator.h"
+#include "tokenizer/WordCleanerTokenizerDecorator.h"
 
 #include <vector>
 #include <set>
@@ -33,3 +33,4 @@ bool isearch::WordCleanerTokenizerDecorator::tryReadNextWord(std::string &word) 
 }
 
 isearch::WordCleanerTokenizerDecorator::WordCleanerTokenizerDecorator(isearch::ITokenizer &tokenizer): _tokenizer(tokenizer) {}
+

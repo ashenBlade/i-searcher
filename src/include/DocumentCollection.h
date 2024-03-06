@@ -51,5 +51,4 @@ namespace isearch {
     };
 }
 
-
 #endif //ISEARCH_DOCUMENTCOLLECTION_H

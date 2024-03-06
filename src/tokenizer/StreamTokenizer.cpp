@@ -2,7 +2,7 @@
 // Created by ashblade on 21.02.24.
 //
 
-#include "StreamTokenizer.h"
+#include "tokenizer/StreamTokenizer.h"
 #include <system_error>
 
 isearch::StreamTokenizer::StreamTokenizer(std::istream &stream) noexcept: _stream(stream), _end(false) {  }

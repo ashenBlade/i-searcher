@@ -8,12 +8,20 @@ project(
 
 SET(sources
         main.cpp
+
         stemmer/RussianStemmer.cpp
+
         tokenizer/StreamTokenizer.cpp
+        tokenizer/StringTokenizer.cpp
         tokenizer/FilterTokenizerDecorator.cpp
         tokenizer/WordCleanerTokenizerDecorator.cpp
+
         common/Document.cpp
         common/DocumentCollection.cpp
+
+        search_engine/LocalSearchEngine.cpp
+
+        ranger/BM25Ranger.cpp
 )
 
 add_executable(${PROJECT_NAME} ${sources})

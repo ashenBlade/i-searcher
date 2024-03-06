@@ -5,7 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cassert>
-#include "RussianStemmer.h"
+#include "stemmer/RussianStemmer.h"
 
 static const std::vector<std::string> Vowels = {
         u8"а",

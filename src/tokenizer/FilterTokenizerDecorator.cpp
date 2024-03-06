@@ -2,7 +2,7 @@
 // Created by ashblade on 21.02.24.
 //
 
-#include "FilterTokenizerDecorator.h"
+#include "tokenizer/FilterTokenizerDecorator.h"
 
 bool isearch::FilterTokenizerDecorator::tryReadNextWord(std::string &word) {
     std::string currentRead {};
@@ -21,3 +21,4 @@ bool isearch::FilterTokenizerDecorator::tryReadNextWord(std::string &word) {
 isearch::FilterTokenizerDecorator::FilterTokenizerDecorator(std::set<std::string>& excluded,
                                                             isearch::ITokenizer &wrapped): _excluded(excluded), _wrapped(wrapped)
                                                             { }
+

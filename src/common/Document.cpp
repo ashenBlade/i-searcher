@@ -5,7 +5,8 @@
 
 #include "Document.h"
 
-isearch::Document::Document(const std::map<std::string, int> &&contents): _contents(contents), _totalWordsCount(0), _hasTotalWordsCount(false) { }
+isearch::Document::Document(std::string title, const std::map<std::string, int> &&contents):
+    _title(std::move(title)), _contents(contents), _totalWordsCount(0), _hasTotalWordsCount(false) { }
 
 isearch::Document::size_type isearch::Document::count(const std::string &word) const noexcept {
     return _contents.count(word);
