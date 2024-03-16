@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-#include "LocalSearchEngine.h"
+#include "search_engine/LocalSearchEngine.h"
 #include "tokenizer/StringTokenizer.h"
 #include "tokenizer/FilterTokenizerDecorator.h"
 #include "tokenizer/WordCleanerTokenizerDecorator.h"

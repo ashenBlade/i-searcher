@@ -5,7 +5,7 @@
 #ifndef ISEARCH_IRANGER_H
 #define ISEARCH_IRANGER_H
 
-#include "DocumentCollection.h"
+#include "common/DocumentCollection.h"
 #include <vector>
 
 namespace isearch {

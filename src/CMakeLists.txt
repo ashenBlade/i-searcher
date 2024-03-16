@@ -22,6 +22,9 @@ SET(sources
         search_engine/LocalSearchEngine.cpp
 
         ranger/BM25Ranger.cpp
+
+        serialization/BinaryDocumentDeserializer.cpp
+        serialization/BinaryDocumentSerializer.cpp
 )
 
 add_executable(${PROJECT_NAME} ${sources})

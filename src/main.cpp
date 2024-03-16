@@ -3,37 +3,62 @@
 //
 #include <iostream>
 #include <map>
+#include <fstream>
 
 #include "stemmer/RussianStemmer.h"
-#include "DocumentCollection.h"
+#include "common/DocumentCollection.h"
+#include "serialization/BinaryDocumentSerializer.h"
+#include "serialization/BinaryDocumentDeserializer.h"
 
 static void setupEnvironment();
 
 int main(int argc, char** argv) {
     setupEnvironment();
+    const std::string filename = "file.index";
 
-    auto collection = isearch::DocumentCollection(std::vector<isearch::Document>{
-        isearch::Document("Привет", std::map<std::string, int> {
-                {"hello", 123},
-                {u8"мир", 11}
-        }),
-        isearch::Document("Алло", std::map<std::string, int> {
-                {u8"привет", 1},
-                {"аааааа", 11}
-        }),
-        isearch::Document("Нет", std::map<std::string, int> {
-                {u8"привет", 1},
-                {"аааааа", 11},
-        })
-    });
-    std::cout << "Количество документов: " << collection.size() << std::endl
-              << "Средний размер документа: " << collection.avg_count() << std::endl;
+//    isearch::Document document {
+//        "hello, world",
+//        std::map<std::string, long> {
+//                {"hello", 123},
+//                {"word", 344}
+//        }
+//    };
+//
+//    std::fstream file(filename, std::ios::out);
+//    if (!file) {
+//        std::cout << "Ошибка открытия файла";
+//        return 1;
+//    }
+//
+//    isearch::BinaryDocumentSerializer serializer(file);
+//    try {
+//        serializer.serialize(document);
+//    } catch (const std::exception& ex) {
+//        std::cout << "Ошибка во время сериализации документа в файл: " << ex.what() << std::endl;
+//        return 2;
+//    }
+//
+//    std::cout << "Файл сериализован успешно";
 
-
-    for (const auto &doc: collection) {
-        std::cout << "Размер документа: " << doc.size() << std::endl;
+    std::fstream file(filename, std::ios::in);
+    if (!file) {
+        std::cout << "Ошибка открытия файла";
+        return 1;
     }
 
+    isearch::BinaryDocumentDeserializer deserializer(file);
+
+    try {
+        auto document = deserializer.deserialize();
+        std::cout << "Название документа: " << document.title() << std::endl;
+        std::cout << "Количество строк: " << document.size() << std::endl;
+        for (const auto &pair: document) {
+            std::cout << pair.first << ": " << pair.second << std::endl;
+        }
+    } catch (const std::exception &ex) {
+        std::cout << "Ошибка при десериализации: " << ex.what() << std::endl;
+        return 2;
+    }
 
     return 0;
 }

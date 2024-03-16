@@ -2,13 +2,13 @@
 // Created by ashblade on 26.02.24.
 //
 
-#include "DocumentCollection.h"
+#include "common/DocumentCollection.h"
 #include <algorithm>
 
 isearch::DocumentCollection::DocumentCollection(const std::vector<Document> &documents) noexcept:
     _documents(documents),
     _avgDocumentSize(-1),
-    _hasAvgDocumentSize(false) { }
+    _hasAvgDocumentSize(false) {  }
 
 isearch::DocumentCollection::DocumentCollection(std::vector<Document> &&documents) noexcept:
         _documents(documents),
