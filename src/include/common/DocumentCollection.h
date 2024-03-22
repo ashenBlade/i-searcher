@@ -11,7 +11,7 @@
 namespace isearch {
     class DocumentCollection {
     private:
-        std::vector<Document> _documents;
+        const std::vector<Document>& _documents;
         mutable bool _hasAvgDocumentSize;
         mutable Document::size_type _avgDocumentSize;
     public:
@@ -42,8 +42,8 @@ namespace isearch {
 
             DocumentIterator& operator++();
             DocumentIterator operator++(int);
-            Document& operator*();
-            Document* operator->();
+            const Document& operator*();
+            const Document* operator->();
         };
 
         DocumentIterator begin() noexcept;

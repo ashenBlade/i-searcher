@@ -6,16 +6,17 @@
 #define ISEARCH_BINARYDOCUMENTDESERIALIZER_H
 
 #include <iostream>
-#include "serialization/IDocumentDeserializer.h"
+
+#include "common/Document.h"
 
 namespace isearch {
     /// @brief Десериализатор из собственного формата
-    class BinaryDocumentDeserializer: public IDocumentDeserializer {
+    class BinaryDocumentDeserializer {
     private:
         std::istream& _input;
     public:
         explicit BinaryDocumentDeserializer(std::istream &input);
-        Document deserialize() override;
+        isearch::Document deserialize(long id);
     };
 }
 

@@ -29,7 +29,7 @@ static double calculateSmoothedIdf(const std::string& word, isearch::DocumentCol
     return std::max(calculatedIdf, eps);
 }
 
-static double calculateBM25(isearch::Document &document, const std::vector<std::string> &search_vector, isearch::DocumentCollection &collection, double k, double b) {
+static double calculateBM25(const isearch::Document &document, const std::vector<std::string> &search_vector, isearch::DocumentCollection &collection, double k, double b) {
     double sum = 0;
     double relativeDocumentSize = (double) collection.size() / (double) collection.avg_count();
 

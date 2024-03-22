@@ -5,18 +5,18 @@
 #ifndef ISEARCH_STREAMDOCUMENTSERIALIZER_H
 #define ISEARCH_STREAMDOCUMENTSERIALIZER_H
 
-#include "serialization/IDocumentSerializer.h"
 #include <iostream>
+#include "common/Document.h"
 
 namespace isearch {
     /// @brief Сериализатор, который сохраняет документ в бинарном представлении
-    class BinaryDocumentSerializer: public IDocumentSerializer {
+    class BinaryDocumentSerializer {
     private:
         /// @brief Поток, в который необходимо производить сериализацию
         std::ostream& _output;
     public:
         explicit BinaryDocumentSerializer(std::ostream &output);
-        void serialize(const isearch::Document &document) override;
+        void serialize(const isearch::Document &document);
     };
 }
 

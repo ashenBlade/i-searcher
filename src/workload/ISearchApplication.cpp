@@ -255,7 +255,7 @@ static std::vector<isearch::Document> readAllDocuments(const std::set<long>& doc
 
         try {
             isearch::BinaryDocumentDeserializer deserializer{indexFile};
-            documents.push_back(deserializer.deserialize());
+            documents.push_back(deserializer.deserialize(id));
         } catch (const std::exception& ex) {
             std::cerr << "Ошибка во время парсинга индексного файла " << indexFilePath << ": " << ex.what() << std::endl;
         }
@@ -273,7 +273,7 @@ static std::vector<std::string> getRelevantFileNames(const std::vector<isearch::
     return ranger.range(query, documentCollection, max);
 }
 
-std::vector<std::string> isearch::ISearchApplication::query(const std::string &query, int max) {
+std::vector<std::string> isearch::ISearchApplication::query(const std::string &queryString, int max) {
     /*
      * Шаги:
      * 1. Парсим строку запроса
@@ -291,7 +291,7 @@ std::vector<std::string> isearch::ISearchApplication::query(const std::string &q
         return {};
     }
 
-    auto query = parseQueryString(query);
+    auto query = parseQueryString(queryString);
     auto inverseIndex = readInverseIndex(getInverseIndexPath());
     auto possibleDocumentIds = getPossibleDocumentIds(query, inverseIndex);
     auto documents = readAllDocuments(possibleDocumentIds, getInverseIndexPath());

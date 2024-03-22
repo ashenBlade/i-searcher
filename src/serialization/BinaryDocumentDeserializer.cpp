@@ -9,7 +9,7 @@
 
 isearch::BinaryDocumentDeserializer::BinaryDocumentDeserializer(std::istream &input): _input(input) { }
 
-isearch::Document isearch::BinaryDocumentDeserializer::deserialize() {
+isearch::Document isearch::BinaryDocumentDeserializer::deserialize(long id) {
     /*
      * Формат документа:
      *
@@ -38,5 +38,5 @@ isearch::Document isearch::BinaryDocumentDeserializer::deserialize() {
         auto count = helper.readLong();
         contents[token] = count;
     }
-    return isearch::Document(title, std::move(contents));
+    return isearch::Document(id, title, std::move(contents));
 }

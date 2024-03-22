@@ -72,11 +72,11 @@ isearch::DocumentCollection::DocumentIterator isearch::DocumentCollection::Docum
     return saved;
 }
 
-isearch::Document &isearch::DocumentCollection::DocumentIterator::operator*() {
+const isearch::Document &isearch::DocumentCollection::DocumentIterator::operator*() {
     return _collection._documents[_index];
 }
 
-isearch::Document *isearch::DocumentCollection::DocumentIterator::operator->() {
+const isearch::Document *isearch::DocumentCollection::DocumentIterator::operator->() {
     return _collection._documents.data() + _index;
 }
 
