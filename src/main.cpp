@@ -83,6 +83,15 @@ static std::string getWorkingDirectoryPath(int argc, char** argv) {
     return result;
 }
 
+static std::string getWorkingDirectoryPath(std::string userDefinedPath) {
+    char buffer[256];
+    auto error = realpath(userDefinedPath.data(), buffer);
+    if (error == nullptr) {
+        throw std::runtime_error("Ошибка при определении директории");
+    }
+    return buffer;
+}
+
 static isearch::ISearchApplication getApplication(int argc, char** argv) {
     auto repositoryPath = getWorkingDirectoryPath(argc, argv);
     return (isearch::ISearchApplication) {repositoryPath, DataDirectoryName, InverseIndexFileName,
@@ -124,8 +133,21 @@ static void findRelevantFiles(int argc, char** argv) {
         exit(1);
     }
 
+    if (argc < 4) {
+        std::cerr << "Директория с файлами не указана" << std::endl;
+        exit(1);
+    }
+
+    auto userDefinedDirectory = std::string(argv[3]);
+    if (userDefinedDirectory.empty()) {
+        std::cerr << "Директория с файлами не указана" << std::endl;
+        exit(1);
+    }
+
+    auto workingDirectory = getWorkingDirectoryPath(userDefinedDirectory);
     auto options = getApplicationOptions(argc, argv);
-    auto application = getApplication(argc, argv);
+    isearch::ISearchApplication application {workingDirectory, DataDirectoryName, InverseIndexFileName, IndexFilesDirectoryName};
+
     auto result = application.query(queryString, options.max_output);
 
     for (const auto &title: result) {

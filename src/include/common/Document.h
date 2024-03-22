@@ -21,7 +21,7 @@ namespace isearch {
         size_type count(const std::string &word) const noexcept;
 
         /// @brief Получить количество различных слов в документе
-        size_type unique_words_count() const noexcept;
+        size_type tokens_count() const noexcept;
 
         /// @brief Получить общее число слов в документе
         size_type size() const noexcept;

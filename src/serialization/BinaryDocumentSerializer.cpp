@@ -32,7 +32,7 @@ void isearch::BinaryDocumentSerializer::serialize(const isearch::Document &docum
     helper.serialize(document.title());
 
     // Количество различных слов
-    helper.serialize(static_cast<int64_t>(document.unique_words_count()));
+    helper.serialize(static_cast<int64_t>(document.tokens_count()));
 
     // Сохраняем частоту каждого слова
     for (const auto &item: document) {

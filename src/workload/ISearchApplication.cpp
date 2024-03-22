@@ -31,13 +31,13 @@ _workingDirectory(std::move(repositoryDirectory)), _applicationDirectory(std::mo
 static void createDirIfNotExists(const std::string& path) {
     // В начале проверим, что ничего по этому пути нет
     struct stat st = {0};
-    if (stat(path.data(), &st)) {
+    if (stat(path.data(), &st) == 0) {
         // Проверяем, что по указанному пути - директория
         if (S_ISDIR(st.st_mode)) {
             return;
         }
 
-        throw std::runtime_error("По указанному пути лежит файл, а не директория");
+        throw std::runtime_error("По указанному пути лежит файл, а не директория: " + path);
     }
 
     // Дальше, создаем директорию
@@ -51,7 +51,7 @@ static void createDirIfNotExists(const std::string& path) {
 /// На данный момент используем только '.txt' файлы
 static bool isRelevantFile(const std::string &filename) {
     constexpr const char* ending = ".txt";
-    return 4 <= filename.size() && std::equal(filename.begin(), filename.end(), ending);
+    return 4 <= filename.size() && std::equal(filename.begin() + static_cast<long>(filename.size()) - 4, filename.end(), ending);
 }
 
 static std::set<std::string> RussianExcludedWords {
@@ -95,7 +95,7 @@ static std::vector<isearch::Document> parseDocuments(const std::string& applicat
         }
 
         auto documentPath = applicationDirectory + '/' + filename;
-        std::fstream file {documentPath};
+        std::ifstream file {documentPath};
         if (!file) {
             std::cerr << "Не удалось открыть файл: " << documentPath << std::endl;
             continue;
@@ -118,8 +118,9 @@ static void saveDocument(const isearch::Document& document, const std::string& i
         return;
     }
 
+
     try {
-        isearch::BinaryDocumentSerializer serializer{file};
+        isearch::BinaryDocumentSerializer serializer {file};
         serializer.serialize(document);
     } catch (const std::exception& ex) {
         std::cerr << "Ошибка при сохранении индексного файла " << indexFilePath << " для документа " << document.title() << ". Причина: " << ex.what() << std::endl;
@@ -242,12 +243,12 @@ static std::set<long> getPossibleDocumentIds(const std::vector<std::string>& que
     return documentIds;
 }
 
-static std::vector<isearch::Document> readAllDocuments(const std::set<long>& documentIds, const std::string& indexFilesPath) {
+static std::vector<isearch::Document> readAllDocuments(const std::set<long>& documentIds, const std::string& indexFilesDirectoryPath) {
     std::vector<isearch::Document> documents {};
     
     for (const auto &id: documentIds) {
-        std::string indexFilePath = indexFilesPath + '/' + std::to_string(id);
-        std::ifstream indexFile {indexFilesPath};
+        std::string documentIndexPath = indexFilesDirectoryPath + '/' + std::to_string(id);
+        std::ifstream indexFile {documentIndexPath};
         if (!indexFile) {
             std::cerr << "Ошибка открытия индексного файла с id " << std::to_string(id) << std::endl;
             continue;
@@ -257,7 +258,7 @@ static std::vector<isearch::Document> readAllDocuments(const std::set<long>& doc
             isearch::BinaryDocumentDeserializer deserializer{indexFile};
             documents.push_back(deserializer.deserialize(id));
         } catch (const std::exception& ex) {
-            std::cerr << "Ошибка во время парсинга индексного файла " << indexFilePath << ": " << ex.what() << std::endl;
+            std::cerr << "Ошибка во время парсинга индексного файла " << documentIndexPath << ": " << ex.what() << std::endl;
         }
     }
     
@@ -292,9 +293,17 @@ std::vector<std::string> isearch::ISearchApplication::query(const std::string &q
     }
 
     auto query = parseQueryString(queryString);
+
+    std::cerr << "Токены запроса: ";
+    for (const auto &item: query) {
+        std::cerr << item << " ";
+    }
+    std::cerr << std::endl;
+
     auto inverseIndex = readInverseIndex(getInverseIndexPath());
+
     auto possibleDocumentIds = getPossibleDocumentIds(query, inverseIndex);
-    auto documents = readAllDocuments(possibleDocumentIds, getInverseIndexPath());
+    auto documents = readAllDocuments(possibleDocumentIds, getIndexDirectoryPath());
 
     return getRelevantFileNames(documents, query, max);
 }

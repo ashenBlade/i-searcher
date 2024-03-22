@@ -7,12 +7,15 @@
 isearch::SerializationHelper::SerializationHelper(std::ostream &stream): _stream(stream) {  }
 
 void isearch::SerializationHelper::serialize(const std::string &value) {
+    constexpr int n = sizeof(int32_t);
+    auto value_length = static_cast<int32_t>(value.size());
+
     // 1. Длина строки
-    auto sizeBe = static_cast<int32_t>(htobe32(value.size()));
-    _stream.write(reinterpret_cast<char*>(&sizeBe), sizeof(int32_t));
+    auto sizeBe = htobe32(value_length);
+    _stream.write(reinterpret_cast<char*>(&sizeBe), n);
 
     // 2. Данные строки в байтах
-    _stream.write(value.data(), static_cast<int>(value.size()));
+    _stream.write(value.data(), value_length);
 }
 
 void isearch::SerializationHelper::serialize(long value) {

@@ -13,8 +13,6 @@ inline static void checkNonNegativeCount(long count) {
 
 isearch::InverseIndex isearch::InverseIndexDeserializer::deserialize(std::istream &stream) {
     isearch::DeserializationHelper helper {stream};
-    // Название файла
-    auto filename = helper.readString();
 
     // Сам обратный индекс
     auto tokensCount = helper.readLong();

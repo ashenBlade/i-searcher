@@ -20,4 +20,13 @@
 Для приведения слов к общему виду я использую алгоритм Snowball.
 https://snowballstem.org/algorithms/russian/stemmer.html
 
-# 
+# Запуск
+
+Для тестирования используется датасет [Lenta.ru из Kaggle](https://www.kaggle.com/datasets/yutkin/corpus-of-russian-news-articles-from-lenta?select=lenta-ru-news.csv).
+
+Скрипт для тестирования:
+
+```shell
+
+
+```

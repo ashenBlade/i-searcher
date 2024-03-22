@@ -3,6 +3,8 @@
 //
 
 
+#include <utility>
+
 #include "common/Document.h"
 
 isearch::Document::Document(long id, std::string title, const std::map<std::string, long> &&contents):
@@ -39,11 +41,13 @@ isearch::Document::const_iterator isearch::Document::end() const {
     return _contents.cend();
 }
 
-isearch::Document::size_type isearch::Document::unique_words_count() const noexcept {
+isearch::Document::size_type isearch::Document::tokens_count() const noexcept {
     return _contents.size();
 }
 
 isearch::Document::Document(isearch::Document &&other) noexcept:
+        _id(other._id),
+        _title(std::move(other._title)),
         _contents(std::move(other._contents)),
         _hasTotalWordsCount(other._hasTotalWordsCount),
         _totalWordsCount(other._totalWordsCount) {

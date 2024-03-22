@@ -10,7 +10,8 @@ isearch::DeserializationHelper::DeserializationHelper(std::istream &stream): _st
 
 std::string isearch::DeserializationHelper::readString() {
     int stringLength = readInt();
-    constexpr int bufferSize = 128;
+
+    constexpr int bufferSize = 256;
     char buffer[bufferSize];
     int left = stringLength;
     std::string result {};

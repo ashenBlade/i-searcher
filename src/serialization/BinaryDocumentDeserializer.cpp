@@ -9,6 +9,14 @@
 
 isearch::BinaryDocumentDeserializer::BinaryDocumentDeserializer(std::istream &input): _input(input) { }
 
+static std::string readTitle(isearch::DeserializationHelper &helper) {
+    try {
+        return helper.readString();
+    } catch (const std::exception &ex) {
+        throw std::runtime_error("Ошибка при чтении заголовка документа: " + std::string(ex.what()));
+    }
+}
+
 isearch::Document isearch::BinaryDocumentDeserializer::deserialize(long id) {
     /*
      * Формат документа:
@@ -30,7 +38,9 @@ isearch::Document isearch::BinaryDocumentDeserializer::deserialize(long id) {
      */
 
     DeserializationHelper helper {_input};
-    auto title = helper.readString();
+
+    auto title = readTitle(helper);
+
     auto tokensCount = helper.readLong();
     std::map<std::string, long> contents {};
     for (int i = 0; i < tokensCount; ++i) {
