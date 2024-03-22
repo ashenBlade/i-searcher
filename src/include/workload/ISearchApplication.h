@@ -6,6 +6,7 @@
 #define ISEARCH_ISEARCHAPPLICATION_H
 
 #include <string>
+#include <vector>
 
 namespace isearch {
     class ISearchApplication {
@@ -29,7 +30,10 @@ namespace isearch {
         explicit ISearchApplication(std::string repositoryDirectory, std::string applicationDirectory, std::string inverseIndexFileName, std::string indexDirectoryName);
 
         /// @brief Инициализировать репозиторий
-        void initializeRepository();
+        void initialize();
+
+        /// @brief Запустить поиск по уже инициализированному репозиторию
+        std::vector<std::string> query(const std::string& query, int max);
     };
 }
 

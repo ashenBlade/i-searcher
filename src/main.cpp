@@ -3,22 +3,9 @@
 //
 #include <iostream>
 #include <map>
-#include <fstream>
 #include <cstring>
-#include <memory>
 #include <unistd.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <fcntl.h>
 
-#include "stemmer/RussianStemmer.h"
-#include "tokenizer/StringTokenizer.h"
-#include "tokenizer/WordCleanerTokenizerDecorator.h"
-#include "tokenizer/FilterTokenizerDecorator.h"
-#include "common/DocumentCollection.h"
-#include "serialization/BinaryDocumentSerializer.h"
-#include "serialization/BinaryDocumentDeserializer.h"
-#include "tokenizer/StreamTokenizer.h"
 #include "workload/ISearchApplication.h"
 
 static void setupEnvironment();
@@ -27,13 +14,13 @@ static void initializeRepository(int argc, char** argv);
 static void findRelevantFiles(int argc, char** argv);
 
 /// @brief Директория, в которой располагаются файлы приложения
-static std::string MainDirectory = ".isearch";
+static std::string DataDirectoryName = ".isearch";
 
 /// @brief Директория, в которой находятся все индексные файлы
-static std::string FilesDirectory = "files";
+static std::string IndexFilesDirectoryName = "files";
 
 /// @brief Файл с инверсированным индексом
-static std::string InverseIndexFile = "index";
+static std::string InverseIndexFileName = "index";
 
 
 int main(int argc, char** argv) {
@@ -96,11 +83,54 @@ static std::string getWorkingDirectoryPath(int argc, char** argv) {
     return result;
 }
 
-static void initializeRepository(int argc, char** argv) {
-    // В начале находим директорию, в которой будем работать
+static isearch::ISearchApplication getApplication(int argc, char** argv) {
     auto repositoryPath = getWorkingDirectoryPath(argc, argv);
-    isearch::ISearchApplication application {repositoryPath};
-    application.initializeRepository();
+    return (isearch::ISearchApplication) {repositoryPath, DataDirectoryName, InverseIndexFileName,
+                                          IndexFilesDirectoryName};
+}
+
+static void initializeRepository(int argc, char** argv) {
+    auto application = getApplication(argc, argv);
+    application.initialize();
+}
+
+struct application_options {
+    int max_output = 5;
+};
+
+static application_options getApplicationOptions(int argc, char** argv) {
+    application_options options {};
+    int option;
+    while ((option = getopt(argc, argv, "n")) != -1) {
+        switch (option) {
+            case 'n':
+                options.max_output = std::stoi(optarg);
+                break;
+        }
+    }
+
+    return options;
+}
+
+static void findRelevantFiles(int argc, char** argv) {
+    if (argc < 3) {
+        std::cerr << "Строка запроса не указана" << std::endl;
+        exit(1);
+    }
+
+    auto queryString = std::string(argv[2]);
+    if (queryString.empty()) {
+        std::cerr << "Строка запроса пустая" << std::endl;
+        exit(1);
+    }
+
+    auto options = getApplicationOptions(argc, argv);
+    auto application = getApplication(argc, argv);
+    auto result = application.query(queryString, options.max_output);
+
+    for (const auto &title: result) {
+        std::cout << title << std::endl;
+    }
 }
 
 void setupEnvironment() {
@@ -112,5 +142,5 @@ void printHelp(int argc, char** argv) {
     std::cout << "Использование: " << argv[0] << " " << "КОМАНДА" << std::endl;
     std::cout << "КОМАНДА может принимать следующие значения:" << std::endl;
     std::cout << "\t" << "init - Инициализировать новый репозиторий для работы" << std::endl;
-    std::cout << "\t" << "query ЗАПРОС - Найти релевантные документы из указанного запроса. Запрос указывается единственной строкой" << std::endl;
+    std::cout << "\t" << "query ЗАПРОС [-n МАКС] - Найти релевантные документы из указанного запроса. Запрос указывается единственной строкой. -n МАКС - максимальное количество документов для вывода" << std::endl;
 }

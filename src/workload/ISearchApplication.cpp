@@ -11,6 +11,10 @@
 #include "serialization/BinaryDocumentSerializer.h"
 #include "common/InverseIndex.h"
 #include "serialization/InverseIndexSerializer.h"
+#include "tokenizer/StringTokenizer.h"
+#include "serialization/InverseIndexDeserializer.h"
+#include "serialization/BinaryDocumentDeserializer.h"
+#include "ranger/BM25Ranger.h"
 
 #include <dirent.h>
 #include <sys/stat.h>
@@ -66,7 +70,7 @@ static isearch::Document parseDocument(long id, const std::string& filename, std
     std::string word;
     while (filterDecorator.tryReadNextWord(word)) {
         auto stemmed = stemmer.stem(word);
-        frequencies[stemmed]++;
+        ++frequencies[stemmed];
     }
 
     return isearch::Document(id, filename, std::move(frequencies));
@@ -167,7 +171,7 @@ static void saveInverseIndex(const isearch::InverseIndex& inverseIndex, const st
     }
 }
 
-void isearch::ISearchApplication::initializeRepository() {
+void isearch::ISearchApplication::initialize() {
     // 1. Проверяем, что указанная директория существует
     auto applicationDir = getApplicationDirPath();
     createDirIfNotExists(applicationDir);
@@ -195,4 +199,102 @@ std::string isearch::ISearchApplication::getInverseIndexPath() const {
 
 std::string isearch::ISearchApplication::getIndexDirectoryPath() const {
     return _workingDirectory + '/' + _applicationDirectory + '/' + _indexDirectoryName;
+}
+
+static std::vector<std::string> parseQueryString(const std::string& query) {
+    isearch::StringTokenizer tokenizer {query};
+    isearch::WordCleanerTokenizerDecorator cleaner {tokenizer};
+    isearch::RussianStemmer stemmer {};
+
+    std::vector<std::string> words {};
+    std::string word{};
+    while (cleaner.tryReadNextWord(word)) {
+        words.push_back(stemmer.stem(word));
+    }
+
+    return words;
+}
+
+static isearch::InverseIndex readInverseIndex(const std::string& inverseIndexFilePath) {
+    std::ifstream file {inverseIndexFilePath};
+    if (!file) {
+        throw std::runtime_error("Не удалось открыть файл обратного индекса");
+    }
+
+    isearch::InverseIndexDeserializer deserializer {};
+    return deserializer.deserialize(file);
+}
+
+static std::set<long> getPossibleDocumentIds(const std::vector<std::string>& query, const isearch::InverseIndex& inverseIndex) {
+    
+    
+    std::set<long> documentIds {};
+
+    for (const auto &token: query) {
+        auto tokenDocuments = inverseIndex.get_documents(token);
+        if (tokenDocuments == nullptr) {
+            continue;
+        }
+
+        documentIds.insert(tokenDocuments->cbegin(), tokenDocuments->cend());
+    }
+
+    return documentIds;
+}
+
+static std::vector<isearch::Document> readAllDocuments(const std::set<long>& documentIds, const std::string& indexFilesPath) {
+    std::vector<isearch::Document> documents {};
+    
+    for (const auto &id: documentIds) {
+        std::string indexFilePath = indexFilesPath + '/' + std::to_string(id);
+        std::ifstream indexFile {indexFilesPath};
+        if (!indexFile) {
+            std::cerr << "Ошибка открытия индексного файла с id " << std::to_string(id) << std::endl;
+            continue;
+        }
+
+        try {
+            isearch::BinaryDocumentDeserializer deserializer{indexFile};
+            documents.push_back(deserializer.deserialize());
+        } catch (const std::exception& ex) {
+            std::cerr << "Ошибка во время парсинга индексного файла " << indexFilePath << ": " << ex.what() << std::endl;
+        }
+    }
+    
+    return documents;
+}
+
+constexpr double k = 2;
+constexpr double b = 0.75;
+
+static std::vector<std::string> getRelevantFileNames(const std::vector<isearch::Document>& documents, const std::vector<std::string>& query, int max) {
+    isearch::BM25Ranger ranger{k, b};
+    auto documentCollection = isearch::DocumentCollection(documents);
+    return ranger.range(query, documentCollection, max);
+}
+
+std::vector<std::string> isearch::ISearchApplication::query(const std::string &query, int max) {
+    /*
+     * Шаги:
+     * 1. Парсим строку запроса
+     * 2. Получаем инвертированный индекс
+     * 3. Читаем все необходимые документы (по индексам)
+     * 4. Запускаем алгоритм ранжирования
+     * 5. Возвращаем названия релевантных документов
+     */
+
+    if (max < 0) {
+        throw std::runtime_error("Количество документов в ответе не может быть отрицательным");
+    }
+
+    if (max == 0) {
+        return {};
+    }
+
+    auto query = parseQueryString(query);
+    auto inverseIndex = readInverseIndex(getInverseIndexPath());
+    auto possibleDocumentIds = getPossibleDocumentIds(query, inverseIndex);
+    auto documents = readAllDocuments(possibleDocumentIds, getInverseIndexPath());
+
+    return getRelevantFileNames(documents, query, max);
 }
