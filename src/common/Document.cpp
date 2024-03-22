@@ -5,8 +5,8 @@
 
 #include "common/Document.h"
 
-isearch::Document::Document(std::string title, const std::map<std::string, long> &&contents):
-    _title(std::move(title)), _contents(contents), _totalWordsCount(0), _hasTotalWordsCount(false) { }
+isearch::Document::Document(long id, std::string title, const std::map<std::string, long> &&contents):
+  _id(id), _title(std::move(title)), _contents(contents), _totalWordsCount(0), _hasTotalWordsCount(false) { }
 
 isearch::Document::size_type isearch::Document::count(const std::string &word) const noexcept {
     return _contents.count(word);
@@ -17,7 +17,7 @@ isearch::Document::size_type isearch::Document::size() const noexcept {
         return _totalWordsCount;
     }
 
-    auto totalCount = 0;
+    auto totalCount = 0L;
     for (const auto &data: _contents) {
         totalCount += data.second;
     }
@@ -50,4 +50,8 @@ isearch::Document::Document(isearch::Document &&other) noexcept:
     other._contents.clear();
     other._hasTotalWordsCount = false;
     other._totalWordsCount = -1;
+}
+
+long isearch::Document::id() const noexcept {
+    return _id;
 }

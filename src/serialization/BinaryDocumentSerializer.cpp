@@ -3,30 +3,9 @@
 //
 
 #include "serialization/BinaryDocumentSerializer.h"
-#include "serialization/BinaryDocumentDeserializer.h"
+#include "serialization/SerializationHelper.h"
 
 isearch::BinaryDocumentSerializer::BinaryDocumentSerializer(std::ostream &output): _output(output) { }
-
-
-class BinarySerializer {
-private:
-    std::ostream& _stream;
-public:
-    explicit BinarySerializer(std::ostream &stream): _stream(stream) {}
-    void write(const std::string &string) {
-        // 1. Длина строки
-        auto sizeBe = static_cast<int32_t>(htobe32(string.size()));
-        _stream.write(reinterpret_cast<char*>(&sizeBe), sizeof(int32_t));
-
-        // 2. Данные строки в байтах
-        _stream.write(string.data(), static_cast<int>(string.size()));
-    }
-
-    void write(long value) {
-        auto be = static_cast<int64_t>(htobe64(value));
-        _stream.write(reinterpret_cast<char*>(&be), sizeof(int64_t));
-    }
-};
 
 void isearch::BinaryDocumentSerializer::serialize(const isearch::Document &document) {
     /*
@@ -47,18 +26,18 @@ void isearch::BinaryDocumentSerializer::serialize(const isearch::Document &docum
      *
      * Все данные сериализуются в big-endian
      */
-    BinarySerializer helper {_output};
+    SerializationHelper helper {_output};
 
     // Название документа
-    helper.write(document.title());
+    helper.serialize(document.title());
 
     // Количество различных слов
-    helper.write(static_cast<int64_t>(document.unique_words_count()));
+    helper.serialize(static_cast<int64_t>(document.unique_words_count()));
 
     // Сохраняем частоту каждого слова
     for (const auto &item: document) {
-        helper.write(item.first);
-        helper.write(item.second);
+        helper.serialize(item.first);
+        helper.serialize(item.second);
     }
 
     _output.flush();

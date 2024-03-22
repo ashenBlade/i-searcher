@@ -18,6 +18,9 @@ SET(sources
 
         common/Document.cpp
         common/DocumentCollection.cpp
+        common/InverseIndex.cpp
+
+        workload/ISearchApplication.cpp
 
         search_engine/LocalSearchEngine.cpp
 
@@ -25,6 +28,10 @@ SET(sources
 
         serialization/BinaryDocumentDeserializer.cpp
         serialization/BinaryDocumentSerializer.cpp
+        serialization/InverseIndexSerializer.cpp
+        serialization/InverseIndexDeserializer.cpp
+        serialization/SerializationHelper.cpp
+        serialization/DeserializationHelper.cpp
 )
 
 add_executable(${PROJECT_NAME} ${sources})

@@ -3,53 +3,11 @@
 //
 
 #include "serialization/BinaryDocumentDeserializer.h"
+#include "serialization/DeserializationHelper.h"
 #include <system_error>
 #include <cstring>
 
 isearch::BinaryDocumentDeserializer::BinaryDocumentDeserializer(std::istream &input): _input(input) { }
-
-class DeserializationHelper {
-private:
-    std::istream &_input;
-public:
-    explicit DeserializationHelper(std::istream  &input): _input(input) { }
-    long readLong() {
-        char buffer[sizeof(int64_t)];
-        _input.read(buffer, sizeof(int64_t));
-        if (!_input) {
-            throw std::runtime_error("Ошибка при чтении long");
-        }
-        return be64toh(*reinterpret_cast<long*>(buffer));
-    }
-
-    int readInt() {
-        char sizeBuffer[sizeof(int32_t)];
-        _input.read(sizeBuffer, sizeof(int32_t));
-        if (!_input) {
-            throw std::runtime_error("Ошибка при чтении размера строки");
-        }
-        return be32toh(*reinterpret_cast<int*>(sizeBuffer));
-    }
-
-    std::string readString() {
-        int stringLength = readInt();
-        constexpr int bufferSize = 128;
-        char buffer[bufferSize];
-        int left = stringLength;
-        std::string result {};
-        while (0 < left) {
-            int toRead = std::min(left, bufferSize);
-            _input.read(buffer, toRead);
-            if (!_input) {
-                throw std::runtime_error("Ошибка при чтении строки");
-            }
-            result.append(buffer, toRead);
-            left -= toRead;
-        }
-
-        return result;
-    }
-};
 
 isearch::Document isearch::BinaryDocumentDeserializer::deserialize() {
     /*
