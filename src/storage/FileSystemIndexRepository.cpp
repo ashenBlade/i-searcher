@@ -13,20 +13,31 @@
 #include "serialization/BinaryDocumentSerializer.h"
 #include "serialization/InverseIndexSerializer.h"
 
+static const std::string ApplicationDataDirectoryName = ".isearch";
+
 static const std::string InverseIndexFileName = "index";
 
 static const std::string IndexFileNamesDirectoryName = "files";
 
 isearch::FileSystemIndexRepository::FileSystemIndexRepository(std::string applicationDataDirectory):
-_applicationDataDirectory(std::move(applicationDataDirectory))
+        _workingDirectory(std::move(applicationDataDirectory))
 {  }
 
+std::string isearch::FileSystemIndexRepository::getApplicationDataDirectoryPath() const {
+    return _workingDirectory + '/' + ApplicationDataDirectoryName;
+}
+
 std::string isearch::FileSystemIndexRepository::getIndexFilesDirectoryName() const {
-    return _applicationDataDirectory + '/' + IndexFileNamesDirectoryName;
+    return getApplicationDataDirectoryPath() + '/' + IndexFileNamesDirectoryName;
 }
 
 std::string isearch::FileSystemIndexRepository::getIndexFilePath(long id) const {
-    return _applicationDataDirectory + '/' + IndexFileNamesDirectoryName + '/' + std::to_string(id);
+    return getApplicationDataDirectoryPath() + '/' + IndexFileNamesDirectoryName + '/' + std::to_string(id);
+}
+
+
+std::string isearch::FileSystemIndexRepository::getInverseIndexFilePath() const {
+    return getApplicationDataDirectoryPath() + '/' + InverseIndexFileName;
 }
 
 std::shared_ptr<isearch::Document> isearch::FileSystemIndexRepository::getDocumentById(long id) {
@@ -62,9 +73,6 @@ isearch::InverseIndex isearch::FileSystemIndexRepository::getInverseIndex() {
     }
 }
 
-std::string isearch::FileSystemIndexRepository::getInverseIndexFilePath() const {
-    return _applicationDataDirectory + '/' + InverseIndexFileName;
-}
 
 void isearch::FileSystemIndexRepository::saveInverseIndex(const isearch::InverseIndex &inverseIndex) {
     std::ofstream file {getInverseIndexFilePath()};
@@ -132,9 +140,10 @@ void isearch::FileSystemIndexRepository::saveDocuments(const std::vector<isearch
 
 void isearch::FileSystemIndexRepository::createAppDataDirectory() {
     try {
-        createDirectoryIfNotExists(_applicationDataDirectory);
+        createDirectoryIfNotExists(getApplicationDataDirectoryPath());
     } catch (const std::runtime_error& ex) {
         throw std::runtime_error("Ошибка при создании директории данных приложения: " + std::string(ex.what()));
     }
 }
+
 

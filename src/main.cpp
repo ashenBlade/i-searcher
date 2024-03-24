@@ -13,15 +13,6 @@ static void printHelp(int argc, char** argv);
 static void initializeRepository(int argc, char** argv);
 static void findRelevantFiles(int argc, char** argv);
 
-/// @brief Директория, в которой располагаются файлы приложения
-static std::string DataDirectoryName = ".isearch";
-
-/// @brief Директория, в которой находятся все индексные файлы
-static std::string IndexFilesDirectoryName = "files";
-
-/// @brief Файл с инверсированным индексом
-static std::string InverseIndexFileName = "index";
-
 
 int main(int argc, char** argv) {
     setupEnvironment();
@@ -93,9 +84,8 @@ static std::string getWorkingDirectoryPath(std::string userDefinedPath) {
 }
 
 static isearch::ISearchApplication getApplication(int argc, char** argv) {
-    auto repositoryPath = getWorkingDirectoryPath(argc, argv);
-    return (isearch::ISearchApplication) {repositoryPath, DataDirectoryName, InverseIndexFileName,
-                                          IndexFilesDirectoryName};
+    auto workingDirectory = getWorkingDirectoryPath(argc, argv);
+    return (isearch::ISearchApplication) {workingDirectory};
 }
 
 static void initializeRepository(int argc, char** argv) {
@@ -146,7 +136,7 @@ static void findRelevantFiles(int argc, char** argv) {
 
     auto workingDirectory = getWorkingDirectoryPath(userDefinedDirectory);
     auto options = getApplicationOptions(argc, argv);
-    isearch::ISearchApplication application {workingDirectory, DataDirectoryName, InverseIndexFileName, IndexFilesDirectoryName};
+    isearch::ISearchApplication application {workingDirectory};
 
     isearch::QueryOptions queryOptions;
     queryOptions.max = options.max_output;

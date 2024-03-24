@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include "Document.h"
 
 namespace isearch {
     /// @brief Обратный индекс для поиска индексов документов, которые содержат определенный токен
@@ -25,6 +26,9 @@ namespace isearch {
 
         /// @brief Получить общее число различных токенов
         long get_tokens_count() const;
+
+        /// @brief Создать обратный индекс для указанных документов
+        static InverseIndex build(const std::vector<isearch::Document>& documents);
 
         using inverse_index_iterator = inverse_index_data::const_iterator;
 

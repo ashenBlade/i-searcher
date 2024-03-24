@@ -11,21 +11,24 @@ namespace isearch {
     /// @brief Интерфейс для хранения индексных файлов в файловой системе
     class FileSystemIndexRepository: public isearch::IIndexRepository {
     private:
-        /// @brief Полный путь до директории с данными для приложения.
-        /// Оканчивается .isearch
-        /// @example /home/user/documents/.isearch
-        std::string _applicationDataDirectory;
+        /// @brief Рабочая директория
+        /// @example /home/user/documents/
+        std::string _workingDirectory;
 
-        /// @brief Получить полный путь для индексного файла указанного документа
+        /// @brief Полный путь до директории с данными приложения
+        std::string getApplicationDataDirectoryPath() const;
+
+        /// @brief Полный путь для индексного файла указанного документа
         std::string getIndexFilePath(long id) const;
 
-        /// @brief Получить полный путь до директории с индексными файлами
+        /// @brief Полный путь до директории с индексными файлами
         std::string getIndexFilesDirectoryName() const;
 
-        /// @brief Получить полный путь файла обратного индекса
+        /// @brief Полный путь файла обратного индекса
         std::string getInverseIndexFilePath() const;
     public:
-        explicit FileSystemIndexRepository(std::string applicationDataDirectory);
+        /// @param workingDirectory Рабочая директория, из которой ведется работа
+        explicit FileSystemIndexRepository(std::string workingDirectory);
         std::shared_ptr<isearch::Document> getDocumentById(long id) override;
         isearch::InverseIndex getInverseIndex() override;
 
