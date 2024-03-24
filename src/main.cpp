@@ -148,7 +148,17 @@ static void findRelevantFiles(int argc, char** argv) {
     auto options = getApplicationOptions(argc, argv);
     isearch::ISearchApplication application {workingDirectory, DataDirectoryName, InverseIndexFileName, IndexFilesDirectoryName};
 
-    auto result = application.query(queryString, options.max_output);
+    isearch::QueryOptions queryOptions;
+    queryOptions.max = options.max_output;
+
+    try {
+        queryOptions.validate();
+    } catch (const std::runtime_error& ex) {
+        std::cerr << ex.what() << std::endl;
+        exit(1);
+    }
+
+    auto result = application.query(queryString, queryOptions);
 
     for (const auto &title: result) {
         std::cout << title << std::endl;

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include "QueryOptions.h"
 
 namespace isearch {
     /// @brief Объект, представляющий приложение с основными вариантами использования
@@ -33,7 +34,7 @@ namespace isearch {
         void initialize();
 
         /// @brief Запустить поиск по уже инициализированному репозиторию
-        std::vector<std::string> query(const std::string& query, int max);
+        std::vector<std::string> query(const std::string& query, const isearch::QueryOptions& options);
     };
 }
 

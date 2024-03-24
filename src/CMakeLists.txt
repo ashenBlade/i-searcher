@@ -25,6 +25,7 @@ SET(sources
         common/InverseIndex.cpp
 
         workload/ISearchApplication.cpp
+        workload/QueryOptions.cpp
 
         search_engine/LocalSearchEngine.cpp
 

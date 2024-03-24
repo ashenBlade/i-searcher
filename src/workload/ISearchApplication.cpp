@@ -85,20 +85,14 @@ std::string isearch::ISearchApplication::getApplicationDirPath() const {
     return _workingDirectory + '/' + _applicationDirectory;
 }
 
-constexpr double k = 2;
-constexpr double b = 0.75;
+static isearch::BM25Ranger createRanger(const isearch::QueryOptions& options) {
+    return {options.bm25.k, options.bm25.b};
+}
 
-std::vector<std::string> isearch::ISearchApplication::query(const std::string &queryString, int max) {
-    if (max < 0) {
-        throw std::runtime_error("Количество документов в ответе не может быть отрицательным");
-    }
-
-    if (max == 0) {
-        return {};
-    }
-
+std::vector<std::string> isearch::ISearchApplication::query(const std::string &queryString, const isearch::QueryOptions& options) {
+    options.validate();
     isearch::FileSystemIndexRepository repository {getApplicationDirPath()};
-    isearch::BM25Ranger ranger {k, b};
+    isearch::BM25Ranger ranger = createRanger(options);
     isearch::LocalSearchEngine searchEngine {repository, ranger};
-    return searchEngine.search(queryString, max);
+    return searchEngine.search(queryString, options.max);
 }
