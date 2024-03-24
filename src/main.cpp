@@ -5,14 +5,15 @@
 #include <map>
 #include <cstring>
 #include <unistd.h>
-
+#include <boost/program_options.hpp>
 #include "workload/ISearchApplication.h"
+
+namespace po = boost::program_options;
 
 static void setupEnvironment();
 static void printHelp(int argc, char** argv);
 static void initializeRepository(int argc, char** argv);
 static void findRelevantFiles(int argc, char** argv);
-
 
 int main(int argc, char** argv) {
     setupEnvironment();
@@ -93,20 +94,25 @@ static void initializeRepository(int argc, char** argv) {
     application.initialize();
 }
 
-struct application_options {
-    int max_output = 5;
-};
+static po::options_description getQueryOptionsDescription(int *v1, double* k, double *b) {
+    po::options_description od {"Параметры запроса"};
+    od.add_options()
+            ("max,m", po::value<int>(v1), "Максимальное количество документов в выводе")
+            ("bm25-k,k", po::value<double>(k), "Значение k для алгоритма BM25")
+            ("bm25-b,b", po::value<double>(b), "Значение b для алгоритма BM25");
+    return od;
+}
 
-static application_options getApplicationOptions(int argc, char** argv) {
-    application_options options {};
-    int option;
-    while ((option = getopt(argc, argv, "n")) != -1) {
-        switch (option) {
-            case 'n':
-                options.max_output = std::stoi(optarg);
-                break;
-        }
-    }
+static isearch::QueryOptions getQueryOptions(int argc, char** argv) {
+    isearch::QueryOptions options {};
+    po::options_description od = getQueryOptionsDescription(&options.max, &options.bm25.k, &options.bm25.b);
+    po::command_line_parser parser{argc, argv};
+    parser.options(od);
+    parser.allow_unregistered();
+    auto parsed = parser.run();
+    po::variables_map vm{};
+    po::store(parsed, vm);
+    po::notify(vm);
 
     return options;
 }
@@ -134,19 +140,16 @@ static void findRelevantFiles(int argc, char** argv) {
         exit(1);
     }
 
-    auto workingDirectory = getWorkingDirectoryPath(userDefinedDirectory);
-    auto options = getApplicationOptions(argc, argv);
-    isearch::ISearchApplication application {workingDirectory};
-
-    isearch::QueryOptions queryOptions;
-    queryOptions.max = options.max_output;
-
+    isearch::QueryOptions queryOptions = getQueryOptions(argc, argv);
     try {
         queryOptions.validate();
     } catch (const std::runtime_error& ex) {
         std::cerr << ex.what() << std::endl;
         exit(1);
     }
+
+    auto workingDirectory = getWorkingDirectoryPath(userDefinedDirectory);
+    isearch::ISearchApplication application {workingDirectory};
 
     auto result = application.query(queryString, queryOptions);
 
@@ -163,6 +166,9 @@ void setupEnvironment() {
 void printHelp(int argc, char** argv) {
     std::cout << "Использование: " << argv[0] << " " << "КОМАНДА" << std::endl;
     std::cout << "КОМАНДА может принимать следующие значения:" << std::endl;
-    std::cout << "\t" << "init - Инициализировать новый репозиторий для работы" << std::endl;
-    std::cout << "\t" << "query ЗАПРОС [-n МАКС] - Найти релевантные документы из указанного запроса. Запрос указывается единственной строкой. -n МАКС - максимальное количество документов для вывода" << std::endl;
+    std::cout << "\t" << "init ДИРЕКТОРИЯ - Инициализировать новый репозиторий для работы.\n\t\tДИРЕКТОРИЯ - директория, в которой производить поиск, может быть относительным путем, например, '.'" << std::endl;
+    std::cout << "\t" << "query ЗАПРОС ДИРЕКТОРИЯ [параметры] - Найти релевантные документы из указанного запроса. \n\t\tЗАПРОС - указывается единственной строкой\n\t\tДИРЕКТОРИЯ - директория, в которой производить поиск, может быть относительным путем, например, '.'" << std::endl;
+    isearch::QueryOptions options{};
+    auto queryDescription = getQueryOptionsDescription(&options.max, &options.bm25.k, &options.bm25.b);
+    std::cout << "\t\t" << queryDescription << std::endl;
 }

@@ -6,6 +6,8 @@ project(
         LANGUAGES CXX
 )
 
+FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS program_options)
+
 SET(sources
         main.cpp
 
@@ -43,5 +45,7 @@ add_executable(${PROJECT_NAME} ${sources})
 
 target_sources(${PROJECT_NAME} PRIVATE ${sources})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Boost_LIBRARIES})
 
 
