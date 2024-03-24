@@ -10,6 +10,10 @@ SET(sources
         main.cpp
 
         stemmer/RussianStemmer.cpp
+        stemmer/StopWords.cpp
+
+        storage/FileSystemIndexRepository.cpp
+        storage/DocumentParser.cpp
 
         tokenizer/StreamTokenizer.cpp
         tokenizer/StringTokenizer.cpp

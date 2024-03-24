@@ -15,6 +15,9 @@
 #include "serialization/InverseIndexDeserializer.h"
 #include "serialization/BinaryDocumentDeserializer.h"
 #include "ranger/BM25Ranger.h"
+#include "search_engine/LocalSearchEngine.h"
+#include "storage/FileSystemIndexRepository.h"
+#include "storage/DocumentParser.h"
 
 #include <dirent.h>
 #include <sys/stat.h>
@@ -28,111 +31,9 @@ isearch::ISearchApplication::ISearchApplication(std::string repositoryDirectory,
 _workingDirectory(std::move(repositoryDirectory)), _applicationDirectory(std::move(applicationDirectory)), _inverseIndexFileName(std::move(inverseIndexFileName)), _indexDirectoryName(std::move(indexDirectoryName))
 { }
 
-static void createDirIfNotExists(const std::string& path) {
-    // В начале проверим, что ничего по этому пути нет
-    struct stat st = {0};
-    if (stat(path.data(), &st) == 0) {
-        // Проверяем, что по указанному пути - директория
-        if (S_ISDIR(st.st_mode)) {
-            return;
-        }
 
-        throw std::runtime_error("По указанному пути лежит файл, а не директория: " + path);
-    }
-
-    // Дальше, создаем директорию
-    if (mkdir(path.data(), 0700)) {
-        perror("createDirIfNotExists");
-        throw std::runtime_error("Ошибка при создании директории: " + path);
-    }
-}
-
-/// @brief Проверить, что указанный файл подходит для индексирования.
-/// На данный момент используем только '.txt' файлы
-static bool isRelevantFile(const std::string &filename) {
-    constexpr const char* ending = ".txt";
-    return 4 <= filename.size() && std::equal(filename.begin() + static_cast<long>(filename.size()) - 4, filename.end(), ending);
-}
-
-static std::set<std::string> RussianExcludedWords {
-        "и",
-        "или",
-        "но",
-};
-
-static isearch::Document parseDocument(long id, const std::string& filename, std::istream& stream) {
-    isearch::StreamTokenizer streamTokenizer {stream};;
-    isearch::WordCleanerTokenizerDecorator cleanerDecorator{streamTokenizer};
-    isearch::FilterTokenizerDecorator filterDecorator {RussianExcludedWords, cleanerDecorator};
-    isearch::RussianStemmer stemmer {};
-
-    std::map<std::string, long> frequencies {};
-    std::string word;
-    while (filterDecorator.tryReadNextWord(word)) {
-        auto stemmed = stemmer.stem(word);
-        ++frequencies[stemmed];
-    }
-
-    return isearch::Document(id, filename, std::move(frequencies));
-}
-
-static std::vector<isearch::Document> parseDocuments(const std::string& applicationDirectory) {
-    DIR* dir = opendir(applicationDirectory.data());
-    if (dir == nullptr) {
-        throw std::runtime_error("Не удалось открыть директорию: " + applicationDirectory);
-    }
-
-    // Поочередно считываем каждый релевантный файл из директории и пытаемся спарсить его
-
-    // Id, которые будут назначаться документам
-    long id = 0L;
-    std::vector<isearch::Document> documents {};
-    dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        std::string filename = entry->d_name;
-        if (!isRelevantFile(filename)) {
-            continue;
-        }
-
-        auto documentPath = applicationDirectory + '/' + filename;
-        std::ifstream file {documentPath};
-        if (!file) {
-            std::cerr << "Не удалось открыть файл: " << documentPath << std::endl;
-            continue;
-        }
-
-        auto document = parseDocument(id, filename, file);
-        documents.push_back(std::move(document));
-        ++id;
-    }
-
-    closedir(dir);
-    return documents;
-}
-
-static void saveDocument(const isearch::Document& document, const std::string& indexDirectory) {
-    auto indexFilePath = indexDirectory + '/' + std::to_string(document.id());
-    std::ofstream file {indexFilePath};
-    if (!file) {
-        std::cerr << "Не удалось сохранить индексный файл " << indexFilePath << " для документа " << document.title() << std::endl;
-        return;
-    }
-
-
-    try {
-        isearch::BinaryDocumentSerializer serializer {file};
-        serializer.serialize(document);
-    } catch (const std::exception& ex) {
-        std::cerr << "Ошибка при сохранении индексного файла " << indexFilePath << " для документа " << document.title() << ". Причина: " << ex.what() << std::endl;
-    }
-}
-
-static void saveDocumentIndexFiles(const std::vector<isearch::Document>& documents, std::string&& indexDirectory) {
-    createDirIfNotExists(indexDirectory);
-
-    for (auto &document: documents) {
-        saveDocument(document, indexDirectory);
-    }
+static isearch::FileSystemIndexRepository createRepository(std::string applicationPath) {
+    return isearch::FileSystemIndexRepository {std::move(applicationPath)};
 }
 
 static isearch::InverseIndex buildInverseIndex(const std::vector<isearch::Document>& documents) {
@@ -158,36 +59,26 @@ static isearch::InverseIndex buildInverseIndex(const std::vector<isearch::Docume
     return isearch::InverseIndex(std::move(payload));
 }
 
-static void saveInverseIndex(const isearch::InverseIndex& inverseIndex, const std::string& inverseIndexFilePath) {
-    std::ofstream file {inverseIndexFilePath};
-    if (!file) {
-        throw std::runtime_error("Не удалось создать файл обратного индекса");
-    }
-
-    try {
-        isearch::InverseIndexSerializer serializer{file};
-        serializer.serialize(inverseIndex);
-    } catch (const std::exception& ex) {
-        throw std::runtime_error("Ошибка при сохранении индексного файла: " + std::string(ex.what()));
-    }
+static std::vector<isearch::Document> parseDocumentsFromWorkingDirectory(const std::string& workingDirectory) {
+    isearch::DocumentParser parser {workingDirectory};
+    return parser.parseDocuments();
 }
 
 void isearch::ISearchApplication::initialize() {
-    // 1. Проверяем, что указанная директория существует
+    // Парсим все документы из указанной директории
+    auto documents = parseDocumentsFromWorkingDirectory(_workingDirectory);
     auto applicationDir = getApplicationDirPath();
-    createDirIfNotExists(applicationDir);
 
-    // 2. Парсим каждый файл в директории
-    auto documents = parseDocuments(_workingDirectory);
+    // Создаем директорию для данных приложения
+    auto repository = createRepository(applicationDir);
+    repository.createAppDataDirectory();
 
-    // 3. Сохраняем индексные файлы каждого документа
-    saveDocumentIndexFiles(documents, getIndexDirectoryPath());
+    // Сохраняем индексные файлы документов
+    repository.saveDocuments(documents);
 
-    // 4. Строим инвертированный индекс
+    // Строим и сохраняем обратный индекс
     auto inverseIndex = buildInverseIndex(documents);
-
-    // 5. Сохраняем инвертированный индекс
-    saveInverseIndex(inverseIndex, getInverseIndexPath());
+    repository.saveInverseIndex(inverseIndex);
 }
 
 std::string isearch::ISearchApplication::getApplicationDirPath() const {
@@ -202,88 +93,10 @@ std::string isearch::ISearchApplication::getIndexDirectoryPath() const {
     return _workingDirectory + '/' + _applicationDirectory + '/' + _indexDirectoryName;
 }
 
-static std::vector<std::string> parseQueryString(const std::string& query) {
-    isearch::StringTokenizer tokenizer {query};
-    isearch::WordCleanerTokenizerDecorator cleaner {tokenizer};
-    isearch::RussianStemmer stemmer {};
-
-    std::vector<std::string> words {};
-    std::string word{};
-    while (cleaner.tryReadNextWord(word)) {
-        words.push_back(stemmer.stem(word));
-    }
-
-    return words;
-}
-
-static isearch::InverseIndex readInverseIndex(const std::string& inverseIndexFilePath) {
-    std::ifstream file {inverseIndexFilePath};
-    if (!file) {
-        throw std::runtime_error("Не удалось открыть файл обратного индекса");
-    }
-
-    isearch::InverseIndexDeserializer deserializer {};
-    return deserializer.deserialize(file);
-}
-
-static std::set<long> getPossibleDocumentIds(const std::vector<std::string>& query, const isearch::InverseIndex& inverseIndex) {
-    
-    
-    std::set<long> documentIds {};
-
-    for (const auto &token: query) {
-        auto tokenDocuments = inverseIndex.get_documents(token);
-        if (tokenDocuments == nullptr) {
-            continue;
-        }
-
-        documentIds.insert(tokenDocuments->cbegin(), tokenDocuments->cend());
-    }
-
-    return documentIds;
-}
-
-static std::vector<isearch::Document> readAllDocuments(const std::set<long>& documentIds, const std::string& indexFilesDirectoryPath) {
-    std::vector<isearch::Document> documents {};
-    
-    for (const auto &id: documentIds) {
-        std::string documentIndexPath = indexFilesDirectoryPath + '/' + std::to_string(id);
-        std::ifstream indexFile {documentIndexPath};
-        if (!indexFile) {
-            std::cerr << "Ошибка открытия индексного файла с id " << std::to_string(id) << std::endl;
-            continue;
-        }
-
-        try {
-            isearch::BinaryDocumentDeserializer deserializer{indexFile};
-            documents.push_back(deserializer.deserialize(id));
-        } catch (const std::exception& ex) {
-            std::cerr << "Ошибка во время парсинга индексного файла " << documentIndexPath << ": " << ex.what() << std::endl;
-        }
-    }
-    
-    return documents;
-}
-
 constexpr double k = 2;
 constexpr double b = 0.75;
 
-static std::vector<std::string> getRelevantFileNames(const std::vector<isearch::Document>& documents, const std::vector<std::string>& query, int max) {
-    isearch::BM25Ranger ranger{k, b};
-    auto documentCollection = isearch::DocumentCollection(documents);
-    return ranger.range(query, documentCollection, max);
-}
-
 std::vector<std::string> isearch::ISearchApplication::query(const std::string &queryString, int max) {
-    /*
-     * Шаги:
-     * 1. Парсим строку запроса
-     * 2. Получаем инвертированный индекс
-     * 3. Читаем все необходимые документы (по индексам)
-     * 4. Запускаем алгоритм ранжирования
-     * 5. Возвращаем названия релевантных документов
-     */
-
     if (max < 0) {
         throw std::runtime_error("Количество документов в ответе не может быть отрицательным");
     }
@@ -292,18 +105,8 @@ std::vector<std::string> isearch::ISearchApplication::query(const std::string &q
         return {};
     }
 
-    auto query = parseQueryString(queryString);
-
-    std::cerr << "Токены запроса: ";
-    for (const auto &item: query) {
-        std::cerr << item << " ";
-    }
-    std::cerr << std::endl;
-
-    auto inverseIndex = readInverseIndex(getInverseIndexPath());
-
-    auto possibleDocumentIds = getPossibleDocumentIds(query, inverseIndex);
-    auto documents = readAllDocuments(possibleDocumentIds, getIndexDirectoryPath());
-
-    return getRelevantFileNames(documents, query, max);
+    isearch::FileSystemIndexRepository repository {getApplicationDirPath()};
+    isearch::BM25Ranger ranger {k, b};
+    isearch::LocalSearchEngine searchEngine {repository, ranger};
+    return searchEngine.search(queryString, max);
 }

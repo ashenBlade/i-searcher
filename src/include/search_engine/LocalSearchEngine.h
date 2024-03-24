@@ -5,15 +5,23 @@
 #ifndef ISEARCH_LOCALSEARCHENGINE_H
 #define ISEARCH_LOCALSEARCHENGINE_H
 
-#include "ISearchEngine.h"
+#include "search_engine/ISearchEngine.h"
+#include "storage/IIndexRepository.h"
+#include "ranger/IRanger.h"
 
 namespace isearch {
     class LocalSearchEngine: public ISearchEngine {
     public:
-        explicit LocalSearchEngine(DocumentCollection documents);
+        explicit LocalSearchEngine(IIndexRepository& repository, isearch::IRanger& ranger);
+        LocalSearchEngine(LocalSearchEngine&& other) = delete;
+        LocalSearchEngine(const LocalSearchEngine& other) = delete;
+
         std::vector<std::string> search(const std::string &query, int max) override;
+
+        ~LocalSearchEngine() override;
     private:
-        DocumentCollection _documents;
+        IIndexRepository& _repository;
+        IRanger& _ranger;
     };
 }
 

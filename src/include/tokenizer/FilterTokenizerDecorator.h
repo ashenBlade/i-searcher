@@ -14,11 +14,11 @@ namespace isearch {
     class FilterTokenizerDecorator: public ITokenizer {
     private:
         /// @brief Множество стоп-слов, которые нужно убрать
-        std::set<std::string>& _excluded;
+        const std::set<std::string>& _excluded;
         /// @brief Реализация, ответ которой нужно фильтровать
         ITokenizer& _wrapped;
     public:
-        explicit FilterTokenizerDecorator(std::set<std::string> &excluded, ITokenizer &wrapped);
+        explicit FilterTokenizerDecorator(const std::set<std::string> &excluded, ITokenizer &wrapped);
         bool tryReadNextWord(std::string &word) override;
     };
 }

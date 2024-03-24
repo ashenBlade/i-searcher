@@ -70,7 +70,7 @@ public:
         // Так как этот массив уже отсортирован, то для вставки можно применить бинарный поиск
         auto pair = std::make_pair(documentTitle, score);
         _documentScore.insert(
-                std::upper_bound(_documentScore.begin(), _documentScore.end(), pair, [](const DocumentInfo& left, const DocumentInfo& right) {return std::get<1>(left) < std::get<1>(right);}),
+                std::upper_bound(_documentScore.begin(), _documentScore.end(), pair, [](const DocumentInfo& left, const DocumentInfo& right) {return std::get<1>(left) > std::get<1>(right);}),
                 pair
         );
 

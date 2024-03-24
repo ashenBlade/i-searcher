@@ -2,10 +2,11 @@
 // Created by ashblade on 24.02.24.
 //
 
-#ifndef ISEARCH_IRANGER_H
-#define ISEARCH_IRANGER_H
+#ifndef ISEARCH_ISEARCHENGINE_H
+#define ISEARCH_ISEARCHENGINE_H
 
-#include "common/DocumentCollection.h"
+#include <vector>
+#include <string>
 
 namespace isearch {
     class ISearchEngine {
@@ -13,6 +14,8 @@ namespace isearch {
         /// @brief Произвести поиск по документам, используя указанную строку запроса
         /// @returns Список из ранжированных документов, соответствующих результату поиска
         virtual std::vector<std::string> search(const std::string &query, int max) = 0;
+
+        virtual ~ISearchEngine() = default;
     };
 }
 

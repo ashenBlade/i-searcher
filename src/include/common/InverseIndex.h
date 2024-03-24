@@ -23,7 +23,7 @@ namespace isearch {
         InverseIndex(const InverseIndex&) = delete;
 
         /// @brief Получить ссылку на список документов, которые содержат этот токен, либо null, если такого токена не найдено
-        std::shared_ptr<std::vector<long>> get_documents(const std::string &token) const;
+        std::shared_ptr<std::vector<long>> getDocuments(const std::string &token) const;
 
         /// @brief Получить общее число различных токенов
         long get_tokens_count() const;

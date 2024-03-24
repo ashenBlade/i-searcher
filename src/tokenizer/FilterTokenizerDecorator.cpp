@@ -18,7 +18,7 @@ bool isearch::FilterTokenizerDecorator::tryReadNextWord(std::string &word) {
     return false;
 }
 
-isearch::FilterTokenizerDecorator::FilterTokenizerDecorator(std::set<std::string>& excluded,
+isearch::FilterTokenizerDecorator::FilterTokenizerDecorator(const std::set<std::string>& excluded,
                                                             isearch::ITokenizer &wrapped): _excluded(excluded), _wrapped(wrapped)
                                                             { }
 

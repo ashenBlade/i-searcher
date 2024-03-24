@@ -10,7 +10,7 @@ isearch::InverseIndex::InverseIndex(isearch::InverseIndex::inverse_index_data&& 
 
 isearch::InverseIndex::InverseIndex(isearch::InverseIndex &&other) noexcept: _data(std::move(other._data)) { }
 
-std::shared_ptr<std::vector<long>> isearch::InverseIndex::get_documents(const std::string &token) const {
+std::shared_ptr<std::vector<long>> isearch::InverseIndex::getDocuments(const std::string &token) const {
     auto it = _data.find(token);
     if (it != _data.end()) {
         return it->second;
