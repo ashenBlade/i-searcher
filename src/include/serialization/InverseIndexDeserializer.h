@@ -8,6 +8,7 @@
 #include "common/InverseIndex.h"
 
 namespace isearch {
+    /// @brief Десериализатор файла обратного индекса
     class InverseIndexDeserializer {
     public:
         InverseIndex deserialize(std::istream &stream);

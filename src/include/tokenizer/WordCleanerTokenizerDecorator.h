@@ -8,6 +8,7 @@
 #include "ITokenizer.h"
 
 namespace isearch {
+    /// @brief Декоратор, удаляющий знаки пунктуации из слова
     class WordCleanerTokenizerDecorator: public ITokenizer {
     private:
         ITokenizer& _tokenizer;

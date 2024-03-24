@@ -83,6 +83,6 @@ isearch::LocalSearchEngine::LocalSearchEngine(isearch::IIndexRepository &reposit
     _repository(repository), _ranger(ranger)
 {  }
 
-isearch::LocalSearchEngine::~LocalSearchEngine() { }
+isearch::LocalSearchEngine::~LocalSearchEngine() = default;
 
 

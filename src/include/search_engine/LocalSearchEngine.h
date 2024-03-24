@@ -10,6 +10,7 @@
 #include "ranger/IRanger.h"
 
 namespace isearch {
+    /// @brief Поисковый движок, использующий индексы локальной файловой системы
     class LocalSearchEngine: public ISearchEngine {
     public:
         explicit LocalSearchEngine(IIndexRepository& repository, isearch::IRanger& ranger);
@@ -17,7 +18,6 @@ namespace isearch {
         LocalSearchEngine(const LocalSearchEngine& other) = delete;
 
         std::vector<std::string> search(const std::string &query, int max) override;
-
         ~LocalSearchEngine() override;
     private:
         IIndexRepository& _repository;

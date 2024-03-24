@@ -8,6 +8,7 @@
 #include <string>
 
 namespace isearch {
+    /// @brief Алгоритм стемминга слова
     class IStemmer {
     public:
         /// @brief Привести переданное слово к каноническому виду (базовая форма)

@@ -11,13 +11,11 @@
 #include <memory>
 
 namespace isearch {
+    /// @brief Обратный индекс для поиска индексов документов, которые содержат определенный токен
     class InverseIndex {
     public:
         using inverse_index_data = std::map<std::string, std::shared_ptr<std::vector<long>>>;
-    private:
-        /// @brief Отображение токена на множество номеров документов, которые содержат этот токен
-        inverse_index_data _data;
-    public:
+
         explicit InverseIndex(inverse_index_data&& data);
         InverseIndex(InverseIndex&& other) noexcept;
         InverseIndex(const InverseIndex&) = delete;
@@ -32,6 +30,9 @@ namespace isearch {
 
         inverse_index_iterator begin() const;
         inverse_index_iterator end() const;
+    private:
+        /// @brief Отображение токена на множество номеров документов, которые содержат этот токен
+        inverse_index_data _data;
     };
 }
 

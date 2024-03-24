@@ -9,11 +9,11 @@
 #include <vector>
 
 namespace isearch {
-    /// @brief Интерфейс алгоритма ранжирования документов
+    /// @brief Алгоритм ранжирования документов
     class IRanger {
     public:
         /// @brief Выполнить ранжирование документов по указанному вектору поиска
-        /// @returns Список названий документов
+        /// @returns Список названий релевантных документов
         virtual std::vector<std::string> range(const std::vector<std::string> &search_vector, DocumentCollection &documents, int max) = 0;
     };
 }

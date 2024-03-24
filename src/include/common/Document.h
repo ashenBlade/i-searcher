@@ -9,6 +9,7 @@
 #include <map>
 
 namespace isearch {
+    /// @brief Документ - это индексированный текст
     class Document {
     public:
         using size_type = size_t;

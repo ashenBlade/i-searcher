@@ -10,6 +10,7 @@
 #include "common/InverseIndex.h"
 
 namespace isearch {
+    /// @brief Сериализатор обратного индекса
     class InverseIndexSerializer {
     private:
         std::ostream& _stream;

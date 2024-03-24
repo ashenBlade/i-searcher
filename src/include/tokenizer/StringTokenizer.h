@@ -8,6 +8,7 @@
 #include "ITokenizer.h"
 
 namespace isearch {
+    /// @brief Токенизатор, разбивающий переданную строку на отдельные токены
     class StringTokenizer: public ITokenizer {
     public:
         explicit StringTokenizer(std::string str);

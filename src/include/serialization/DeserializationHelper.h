@@ -8,6 +8,7 @@
 #include <iostream>
 
 namespace isearch {
+    /// @brief Вспомогательный класс для десериализации данных
     class DeserializationHelper {
     private:
         std::istream& _stream;

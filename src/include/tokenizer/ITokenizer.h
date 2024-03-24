@@ -8,6 +8,7 @@
 #include <string>
 
 namespace isearch {
+    /// @brief Интерфейс токенизатора
     class ITokenizer {
     public:
         /// @brief Прочитать очередное слово

@@ -9,6 +9,7 @@
 #include "iostream"
 
 namespace isearch {
+    /// @brief Токенизатор, читающий слова из входного потока до достижения его конца
     class StreamTokenizer: public ITokenizer {
     private:
         std::istream& _stream;

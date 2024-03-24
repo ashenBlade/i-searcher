@@ -9,7 +9,7 @@
 #include "common/Document.h"
 
 namespace isearch {
-    /// @brief Сериализатор, который сохраняет документ в бинарном представлении
+    /// @brief Сериализатор, сохраняющий документ в бинарном формате
     class BinaryDocumentSerializer {
     private:
         /// @brief Поток, в который необходимо производить сериализацию

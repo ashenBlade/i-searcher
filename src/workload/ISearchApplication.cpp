@@ -85,14 +85,6 @@ std::string isearch::ISearchApplication::getApplicationDirPath() const {
     return _workingDirectory + '/' + _applicationDirectory;
 }
 
-std::string isearch::ISearchApplication::getInverseIndexPath() const {
-    return _workingDirectory + '/' + _applicationDirectory + '/' + _inverseIndexFileName;
-}
-
-std::string isearch::ISearchApplication::getIndexDirectoryPath() const {
-    return _workingDirectory + '/' + _applicationDirectory + '/' + _indexDirectoryName;
-}
-
 constexpr double k = 2;
 constexpr double b = 0.75;
 

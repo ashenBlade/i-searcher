@@ -8,6 +8,7 @@
 #include <iostream>
 
 namespace isearch {
+    /// @brief Вспомогательный класс для сериализации
     class SerializationHelper {
     private:
         std::ostream& _stream;

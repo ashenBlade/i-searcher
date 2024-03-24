@@ -9,6 +9,7 @@
 #include "common/Document.h"
 
 namespace isearch {
+    /// @brief Интерфейс для доступа к индексным файлам
     class IIndexRepository {
     public:
         /// @brief Найти документ по переданному ID

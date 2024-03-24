@@ -8,6 +8,7 @@
 #include "storage/IIndexRepository.h"
 
 namespace isearch {
+    /// @brief Интерфейс для хранения индексных файлов в файловой системе
     class FileSystemIndexRepository: public isearch::IIndexRepository {
     private:
         /// @brief Полный путь до директории с данными для приложения.

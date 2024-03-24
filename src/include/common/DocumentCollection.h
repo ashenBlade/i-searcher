@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace isearch {
+    /// @brief Представление множества документов с удобными методами
     class DocumentCollection {
     private:
         const std::vector<Document>& _documents;
@@ -17,6 +18,7 @@ namespace isearch {
     public:
         explicit DocumentCollection(const std::vector<Document>& documents) noexcept;
         explicit DocumentCollection(std::vector<Document>&& documents) noexcept;
+        DocumentCollection(const DocumentCollection& other) = delete;
 
         /// @brief Общее число документов
         size_t size() const;

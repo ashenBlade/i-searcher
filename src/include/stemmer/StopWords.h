@@ -9,6 +9,7 @@
 #include <string>
 
 namespace isearch {
+    /// @brief Вспомогательный класс для хранения стоп-слов
     class StopWords {
     public:
         static const std::set<std::string>& russian();

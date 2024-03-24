@@ -10,7 +10,7 @@
 #include "common/Document.h"
 
 namespace isearch {
-    /// @brief Десериализатор из собственного формата
+    /// @brief Десериализатор документа из собственного бинарного формата
     class BinaryDocumentDeserializer {
     private:
         std::istream& _input;

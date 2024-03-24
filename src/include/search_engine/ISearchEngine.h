@@ -9,6 +9,7 @@
 #include <string>
 
 namespace isearch {
+    /// @brief Поисковый движок для нахождения релевантных документов
     class ISearchEngine {
     public:
         /// @brief Произвести поиск по документам, используя указанную строку запроса

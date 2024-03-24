@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace isearch {
+    /// @brief Объект, представляющий приложение с основными вариантами использования
     class ISearchApplication {
     private:
         /// @brief Текущая рабочая директория (в ней ищем файлы и другие данные)
@@ -23,13 +24,12 @@ namespace isearch {
         /// @example documents
         std::string _indexDirectoryName;
 
+        /// @brief Получить полный путь до директории с данными приложения
         std::string getApplicationDirPath() const;
-        std::string getInverseIndexPath() const;
-        std::string getIndexDirectoryPath() const;
     public:
         explicit ISearchApplication(std::string repositoryDirectory, std::string applicationDirectory, std::string inverseIndexFileName, std::string indexDirectoryName);
 
-        /// @brief Инициализировать репозиторий
+        /// @brief Инициализировать директорию - создать файлы индексов и обратный индекс
         void initialize();
 
         /// @brief Запустить поиск по уже инициализированному репозиторию
