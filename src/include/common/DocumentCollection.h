@@ -29,6 +29,9 @@ namespace isearch {
         /// @brief Средний размер документа
         size_t avg_count() const;
 
+        /// @brief Получить все документы из этой коллекции
+        const std::vector<Document>& getDocuments() const;
+
         class DocumentIterator: public std::iterator<std::input_iterator_tag, Document> {
         private:
             DocumentCollection& _collection;

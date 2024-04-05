@@ -17,8 +17,11 @@ namespace isearch {
 
         /// @brief Коэффициент влияния средней длины
         double _b;
+
+        /// @brief Степень параллелизма, которую необходимо использовать
+        int _parallelism;
     public:
-        BM25Ranger(double k, double b);
+        BM25Ranger(double k, double b, int parallelism);
         std::vector<std::string> range(const std::vector<std::string> &search_vector, isearch::DocumentCollection &documents, int max) override;
     };
 }

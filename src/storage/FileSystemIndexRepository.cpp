@@ -153,7 +153,7 @@ void isearch::FileSystemIndexRepository::createAppDataDirectories() {
 }
 
 void isearch::FileSystemIndexRepository::saveDocument(const isearch::Document &document) {
-    saveDocumentCore()
+    saveDocumentCore(document, getIndexFilePath(document.id()));
 }
 
 

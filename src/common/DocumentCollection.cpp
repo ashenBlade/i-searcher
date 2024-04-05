@@ -61,6 +61,10 @@ isearch::DocumentCollection::DocumentIterator isearch::DocumentCollection::end()
     return DocumentIterator(*this, _documents.size());
 }
 
+const std::vector<isearch::Document> &isearch::DocumentCollection::getDocuments() const {
+    return _documents;
+}
+
 isearch::DocumentCollection::DocumentIterator &isearch::DocumentCollection::DocumentIterator::operator++() {
     _index++;
     return *this;

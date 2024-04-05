@@ -14,7 +14,7 @@ namespace isearch {
     public:
         /// @brief Выполнить ранжирование документов по указанному вектору поиска
         /// @returns Список названий релевантных документов
-        virtual std::vector<std::string> range(const std::vector<std::string> &search_vector, DocumentCollection &documents, int max) = 0;
+        virtual std::vector<std::string> range(const std::vector<std::string> &search_vector, isearch::DocumentCollection &documents, int max) = 0;
     };
 }
 

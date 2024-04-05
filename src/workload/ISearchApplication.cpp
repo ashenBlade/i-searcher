@@ -42,6 +42,8 @@ struct document_saver_state {
 };
 
 void isearch::ISearchApplication::initialize(const isearch::InitOptions &options) {
+    options.validate();
+
     // Сразу создаем директорию для данных приложения
     auto repository = isearch::FileSystemIndexRepository(_workingDirectory);
     repository.createAppDataDirectories();
@@ -57,8 +59,8 @@ void isearch::ISearchApplication::initialize(const isearch::InitOptions &options
     } else {
         // Иначе создаем parallel - 1 фоновых потоков
         isearch::DocumentParser parser {_workingDirectory};
-        documents = parser.parseAllDocumentsInDirectoryParallel(options.parallelism);
         int parallelism = options.getParallelism();
+        documents = parser.parseAllDocumentsInDirectoryParallel(parallelism);
         long documentsPerThread = std::max(1L, static_cast<long>(documents.size() / parallelism));
 
         // Запускаем их
@@ -88,7 +90,7 @@ void isearch::ISearchApplication::initialize(const isearch::InitOptions &options
 }
 
 static isearch::BM25Ranger createRanger(const isearch::QueryOptions& options) {
-    return {options.bm25.k, options.bm25.b};
+    return {options.bm25.k, options.bm25.b, options.getParallelism()};
 }
 
 std::vector<std::string> isearch::ISearchApplication::query(const std::string &queryString, const isearch::QueryOptions& options) {

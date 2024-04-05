@@ -28,6 +28,7 @@ SET(sources
 
         workload/ISearchApplication.cpp
         workload/QueryOptions.cpp
+        workload/InitOptions.cpp
 
         search_engine/LocalSearchEngine.cpp
 

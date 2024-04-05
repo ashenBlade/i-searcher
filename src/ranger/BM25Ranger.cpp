@@ -2,15 +2,20 @@
 // Created by ashblade on 06.03.24.
 //
 
-#include "system_error"
+#include <system_error>
 #include <cmath>
 #include <algorithm>
+#include <thread>
+#include <memory>
 
 #include "ranger/BM25Ranger.h"
 
-isearch::BM25Ranger::BM25Ranger(double k, double b): _k(k), _b(b) {
+isearch::BM25Ranger::BM25Ranger(double k, double b, int parallelism): _k(k), _b(b), _parallelism(parallelism) {
     if (b < 0 || 1 < b) {
         throw std::range_error("Коэффициент b может принимать значения от 0 до 1 включительно");
+    }
+    if (parallelism < 0) {
+        throw std::runtime_error("Параллелизм должен быть положительным");
     }
 }
 
@@ -88,22 +93,88 @@ public:
         }
         return result;
     }
+
+    void merge(const SortedDocumentCollection &other) {
+        if (&other == this) {
+            return;
+        }
+
+        for (const auto &pair: other._documentScore) {
+            auto filename = std::get<0>(pair);
+            auto score = std::get<1>(pair);
+            append(filename, score);
+        }
+    }
+};
+
+struct thread_worker_state {
+    isearch::DocumentCollection& _collection;
+    const std::vector<std::string>& _query;
+    double _k;
+    double _b;
+    long _start;
+    long _end;
+    SortedDocumentCollection _sorted;
+
+    thread_worker_state(isearch::DocumentCollection& collection, const std::vector<std::string>& query, double k, double b, long start, long end, int max):
+        _collection(collection), _query(query), _k(k), _b(b), _start(start), _end(end), _sorted(max) {  }
+
+    void run() {
+        const auto& documents = _collection.getDocuments();
+        for (long i = _start; i < _end; ++i) {
+            auto& document = documents[i];
+            const auto score = calculateBM25(document, _query, _collection, _k, _b);
+            _sorted.append(document.title(), score);
+        }
+    }
 };
 
 std::vector<std::string>
 isearch::BM25Ranger::range(const std::vector<std::string> &search_vector,
-                           isearch::DocumentCollection &documents,
+                           isearch::DocumentCollection &collection,
                            int max) {
+    // Однопоточное выполнение
+    if (_parallelism == 1) {
+        SortedDocumentCollection sorted {max};
 
-    SortedDocumentCollection sorted {max};
+        // Обходим каждый документ и вычисляем его вес по формуле BM25
+        // Затем, вставляем его в уже отсортированный список документов
+        for (auto &item: collection) {
+            const auto score = calculateBM25(item, search_vector, collection, _k, _b);
+            sorted.append(item.title(), score);
+        }
 
-    // Обходим каждый документ и вычисляем его вес по формуле BM25
-    // Затем, вставляем его в уже отсортированный список документов
-    for (auto &item: documents) {
-        const auto score = calculateBM25(item, search_vector, documents, _k, _b);
-        sorted.append(item.title(), score);
+        // Создаем результирующий список документов
+        return sorted.build();
     }
 
-    // Создаем результирующий список документов
-    return sorted.build();
+    // Создаем и запускаем фоновые потоки
+    auto& documents = collection.getDocuments();
+    auto documentsPerThread = documents.size() / _parallelism;
+
+    std::vector<std::thread> workers {};
+    std::vector<std::shared_ptr<thread_worker_state>> states {};
+
+    for (int i = 0; i < _parallelism - 1; ++i) {
+        auto start = static_cast<long>(i * documentsPerThread);
+        auto end = static_cast<long>(start + documentsPerThread);
+        auto state = std::make_shared<thread_worker_state>(collection, search_vector, _k, _b, start, end, max);
+        std::thread worker {[](thread_worker_state* state) {state->run();}, state.get()};
+        workers.push_back(std::move(worker));
+        states.push_back(std::move(state));
+    }
+
+    // Начинаем расчеты в текущем потоке
+    thread_worker_state currentState {collection, search_vector, _k, _b, static_cast<long>((_parallelism - 1) * documentsPerThread), static_cast<long>(documents.size()), max};
+    currentState.run();
+
+    // Заканчиваем расчеты в других потоках и объединяем результаты
+    for (int i = 0; i < _parallelism - 1; ++i) {
+        auto& worker = workers[i];
+        worker.join();
+        auto state = states[i];
+        currentState._sorted.merge(state->_sorted);
+    }
+
+    return currentState._sorted.build();
 }
