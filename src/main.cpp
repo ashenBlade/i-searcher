@@ -89,23 +89,45 @@ static isearch::ISearchApplication getApplication(int argc, char** argv) {
     return (isearch::ISearchApplication) {workingDirectory};
 }
 
-static void initializeRepository(int argc, char** argv) {
-    auto application = getApplication(argc, argv);
-    application.initialize();
+static po::options_description getInitOptionsDescription(int *parallelism) {
+    po::options_description od {"Параметры init"};
+    od.add_options()
+            ("parallel,p", po::value<int>(parallelism), "Количество одновременных потоков, либо 0 для автоматического определения");
+    return od;
 }
 
-static po::options_description getQueryOptionsDescription(int *v1, double* k, double *b) {
+static isearch::InitOptions getInitOptions(int argc, char** argv) {
+    isearch::InitOptions options {};
+    po::options_description od = getInitOptionsDescription(&options.parallelism);
+    po::command_line_parser parser{argc, argv};
+    parser.options(od);
+    parser.allow_unregistered();
+    auto parsed = parser.run();
+    po::variables_map vm{};
+    po::store(parsed, vm);
+    po::notify(vm);
+    return options;
+}
+
+static void initializeRepository(int argc, char** argv) {
+    auto application = getApplication(argc, argv);
+    auto options = getInitOptions(argc, argv);
+    application.initialize(options);
+}
+
+static po::options_description getQueryOptionsDescription(int *v1, double* k, double *b, int *parallelism) {
     po::options_description od {"Параметры запроса"};
     od.add_options()
             ("max,m", po::value<int>(v1), "Максимальное количество документов в выводе")
             ("bm25-k,k", po::value<double>(k), "Значение k для алгоритма BM25")
-            ("bm25-b,b", po::value<double>(b), "Значение b для алгоритма BM25");
+            ("bm25-b,b", po::value<double>(b), "Значение b для алгоритма BM25")
+            ("parallel,p", po::value<int>(parallelism), "Количество одновременных потоков, либо 0 для автоматического определения");
     return od;
 }
 
 static isearch::QueryOptions getQueryOptions(int argc, char** argv) {
     isearch::QueryOptions options {};
-    po::options_description od = getQueryOptionsDescription(&options.max, &options.bm25.k, &options.bm25.b);
+    po::options_description od = getQueryOptionsDescription(&options.max, &options.bm25.k, &options.bm25.b, &options.parallelism);
     po::command_line_parser parser{argc, argv};
     parser.options(od);
     parser.allow_unregistered();
@@ -169,6 +191,10 @@ void printHelp(int argc, char** argv) {
     std::cout << "\t" << "init ДИРЕКТОРИЯ - Инициализировать новый репозиторий для работы.\n\t\tДИРЕКТОРИЯ - директория, в которой производить поиск, может быть относительным путем, например, '.'" << std::endl;
     std::cout << "\t" << "query ЗАПРОС ДИРЕКТОРИЯ [параметры] - Найти релевантные документы из указанного запроса. \n\t\tЗАПРОС - указывается единственной строкой\n\t\tДИРЕКТОРИЯ - директория, в которой производить поиск, может быть относительным путем, например, '.'" << std::endl;
     isearch::QueryOptions options{};
-    auto queryDescription = getQueryOptionsDescription(&options.max, &options.bm25.k, &options.bm25.b);
+    auto queryDescription = getQueryOptionsDescription(&options.max, &options.bm25.k, &options.bm25.b, &options.parallelism);
     std::cout << "\t\t" << queryDescription << std::endl;
+
+    isearch::InitOptions initOptions {};
+    auto initDescription = getInitOptionsDescription(&initOptions.parallelism);
+    std::cout << "\t\t" << initDescription << std::endl;
 }

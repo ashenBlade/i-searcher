@@ -3,6 +3,8 @@
 //
 
 #include <stdexcept>
+#include <thread>
+
 #include "workload/QueryOptions.h"
 
 void isearch::QueryOptions::bm25_options::validate() const {
@@ -20,5 +22,17 @@ void isearch::QueryOptions::validate() const {
         throw std::runtime_error("Максимальное количество файлов в выводе не может быть отрицательным");
     }
 
+    if (parallelism < 1 && parallelism != shouldInferParallelism) {
+        throw std::runtime_error("Параллелизм может быть либо положительным, либо равен " + std::to_string(shouldInferParallelism) + " для автоматического определения");
+    }
+
     bm25.validate();
+}
+
+int isearch::QueryOptions::getParallelism() const {
+    if (parallelism == shouldInferParallelism) {
+        return static_cast<int>(std::thread::hardware_concurrency());
+    }
+
+    return parallelism;
 }

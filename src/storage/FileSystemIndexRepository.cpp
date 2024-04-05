@@ -88,8 +88,7 @@ void isearch::FileSystemIndexRepository::saveInverseIndex(const isearch::Inverse
     }
 }
 
-static void saveDocument(const isearch::Document& document, const std::string& indexDirectory) {
-    auto indexFilePath = indexDirectory + '/' + std::to_string(document.id());
+static void saveDocumentCore(const isearch::Document& document, const std::string& indexFilePath) {
     std::ofstream file {indexFilePath};
     if (!file) {
         std::cerr << "Не удалось сохранить индексный файл " << indexFilePath << " для документа " << document.title() << std::endl;
@@ -134,16 +133,27 @@ static void createIndexFileDirectory(const std::string& path) {
 void isearch::FileSystemIndexRepository::saveDocuments(const std::vector<isearch::Document> &documents) {
     createIndexFileDirectory(getIndexFilesDirectoryName());
     for (const auto &document: documents) {
-        saveDocument(document, getIndexFilePath(document.id()));
+        saveDocumentCore(document, getIndexFilePath(document.id()));
     }
 }
 
-void isearch::FileSystemIndexRepository::createAppDataDirectory() {
+
+void isearch::FileSystemIndexRepository::createAppDataDirectories() {
     try {
         createDirectoryIfNotExists(getApplicationDataDirectoryPath());
     } catch (const std::runtime_error& ex) {
         throw std::runtime_error("Ошибка при создании директории данных приложения: " + std::string(ex.what()));
     }
+
+    try {
+        createDirectoryIfNotExists(getIndexFilesDirectoryName());
+    } catch (const std::runtime_error& ex) {
+        throw std::runtime_error("Ошибка при создании директории для индексных файлов: " + std::string(ex.what()));
+    }
+}
+
+void isearch::FileSystemIndexRepository::saveDocument(const isearch::Document &document) {
+    saveDocumentCore()
 }
 
 

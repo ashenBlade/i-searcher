@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "QueryOptions.h"
+#include "InitOptions.h"
 
 namespace isearch {
     /// @brief Объект, представляющий приложение с основными вариантами использования
@@ -19,7 +20,7 @@ namespace isearch {
         explicit ISearchApplication(std::string workingDirectory);
 
         /// @brief Инициализировать директорию - создать файлы индексов и обратный индекс
-        void initialize();
+        void initialize(const isearch::InitOptions& options);
 
         /// @brief Запустить поиск по уже инициализированному репозиторию
         std::vector<std::string> query(const std::string& query, const isearch::QueryOptions& options);

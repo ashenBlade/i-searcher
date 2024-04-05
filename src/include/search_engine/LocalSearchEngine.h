@@ -13,7 +13,8 @@ namespace isearch {
     /// @brief Поисковый движок, использующий индексы локальной файловой системы
     class LocalSearchEngine: public ISearchEngine {
     public:
-        explicit LocalSearchEngine(IIndexRepository& repository, isearch::IRanger& ranger);
+        /// @brief Создать новый LocalSearchEngine с указанной степенью параллелизма
+        explicit LocalSearchEngine(IIndexRepository& repository, isearch::IRanger& ranger, int parallelism);
         LocalSearchEngine(LocalSearchEngine&& other) = delete;
         LocalSearchEngine(const LocalSearchEngine& other) = delete;
 
@@ -22,6 +23,8 @@ namespace isearch {
     private:
         IIndexRepository& _repository;
         IRanger& _ranger;
+        /// @brief Степень параллелизима, которую можно использовать (кол-во одновременных потоков)
+        int _parallelism;
     };
 }
 

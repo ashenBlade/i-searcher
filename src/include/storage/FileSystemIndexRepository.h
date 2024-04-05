@@ -33,13 +33,16 @@ namespace isearch {
         isearch::InverseIndex getInverseIndex() override;
 
         /// @brief Проверить и при необходимости создать директорию для данных приложения
-        void createAppDataDirectory();
+        void createAppDataDirectories();
 
         /// @brief Сохранить обратный индекс в файл приложения
         void saveInverseIndex(const isearch::InverseIndex& inverseIndex);
 
         /// @brief Сохранить индексные файлы для указанных документов
         void saveDocuments(const std::vector<isearch::Document>& documents);
+
+        /// @brief Сохранить один документ
+        void saveDocument(const isearch::Document& document);
     };
 }
 

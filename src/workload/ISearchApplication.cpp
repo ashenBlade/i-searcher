@@ -14,6 +14,7 @@
 
 #include <utility>
 #include <vector>
+#include <thread>
 
 isearch::ISearchApplication::ISearchApplication(std::string workingDirectory):
 _workingDirectory(std::move(workingDirectory)) { }
@@ -21,19 +22,65 @@ _workingDirectory(std::move(workingDirectory)) { }
 
 static std::vector<isearch::Document> parseDocumentsFromWorkingDirectory(const std::string& workingDirectory) {
     isearch::DocumentParser parser {workingDirectory};
-    return parser.parseDocuments();
+    return parser.parseAllDocumentsInDirectory();
 }
 
-void isearch::ISearchApplication::initialize() {
-    // Парсим все документы из указанной директории
-    auto documents = parseDocumentsFromWorkingDirectory(_workingDirectory);
+struct document_saver_state {
+    std::vector<isearch::Document>& _documents;
+    long _start;
+    long _end;
+    isearch::FileSystemIndexRepository& _repository;
 
-    // Создаем директорию для данных приложения
+    document_saver_state(std::vector<isearch::Document>& documents, long start, long end, isearch::FileSystemIndexRepository& repository)
+    : _documents(documents), _start(start), _end(end), _repository(repository) { }
+    
+    void saveDocuments() {
+        for (long i = _start; i < _end; ++i) {
+            _repository.saveDocument(_documents[i]);
+        }
+    }
+};
+
+void isearch::ISearchApplication::initialize(const isearch::InitOptions &options) {
+    // Сразу создаем директорию для данных приложения
     auto repository = isearch::FileSystemIndexRepository(_workingDirectory);
-    repository.createAppDataDirectory();
+    repository.createAppDataDirectories();
 
-    // Сохраняем индексные файлы документов
-    repository.saveDocuments(documents);
+    // Если приложение однопоточное, то делаем все дела тут-же (в этом же потоке)
+    std::vector<isearch::Document> documents;
+    if (options.parallelism == 1) {
+        // Парсим все документы из указанной директории
+        documents = parseDocumentsFromWorkingDirectory(_workingDirectory);
+
+        // Сохраняем индексные файлы документов
+        repository.saveDocuments(documents);
+    } else {
+        // Иначе создаем parallel - 1 фоновых потоков
+        isearch::DocumentParser parser {_workingDirectory};
+        documents = parser.parseAllDocumentsInDirectoryParallel(options.parallelism);
+        int parallelism = options.getParallelism();
+        long documentsPerThread = std::max(1L, static_cast<long>(documents.size() / parallelism));
+
+        // Запускаем их
+        std::vector<std::thread> workers {};
+        std::vector<std::shared_ptr<document_saver_state>> states {};
+        for (int i = 0; i < parallelism - 1; ++i) {
+            long start = i * documentsPerThread;
+            long end = start + documentsPerThread;
+            auto state = std::make_shared<document_saver_state>(documents, start, end, repository);
+            workers.push_back(std::move(std::thread([](document_saver_state *state) {state->saveDocuments();}, state.get())));
+            states.push_back(state);
+        }
+
+        // Работаем сами
+        document_saver_state currentState {documents, (parallelism - 1) * documentsPerThread, static_cast<long>(documents.size()), repository};
+        currentState.saveDocuments();
+
+        // Ожидаем завершение работы фоновых потоков
+        for (auto &worker: workers) {
+            worker.join();
+        }
+    }
 
     // Строим и сохраняем обратный индекс
     auto inverseIndex = isearch::InverseIndex::build(documents);
@@ -48,6 +95,6 @@ std::vector<std::string> isearch::ISearchApplication::query(const std::string &q
     options.validate();
     isearch::FileSystemIndexRepository repository {_workingDirectory};
     isearch::BM25Ranger ranger = createRanger(options);
-    isearch::LocalSearchEngine searchEngine {repository, ranger};
+    isearch::LocalSearchEngine searchEngine {repository, ranger, options.getParallelism()};
     return searchEngine.search(queryString, options.max);
 }

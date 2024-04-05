@@ -15,11 +15,18 @@ namespace isearch {
         };
 
         int max;
+        int parallelism;
         bm25_options bm25;
 
         /// @brief Проверить аргументы на допустимость значений
         /// @throws std::runtime_error: Найдены ошибки, в сообщении причина
         void validate() const;
+
+        /// @brief Получить значение параллелизма, с учетом вывода этого значения
+        int getParallelism() const;
+
+        /// @brief Значение, означающее, что параллелизм необходимо вывести самим
+        static constexpr int shouldInferParallelism = 0;
     };
 }
 
